@@ -110,6 +110,14 @@
                                 <span class="nav-link-title">@lang("Match")</span>
                             </a>
                         </div>
+
+                            <div class="nav-item">
+                                <a class="nav-link {{ menuActive(['admin.listSchedule']) }}"
+                                   href="{{ route('admin.listSchedule') }}" data-placement="left">
+                                    <i class="fa fa-calendar-alt nav-icon"></i>
+                                    <span class="nav-link-title">@lang("Schedule")</span>
+                                </a>
+                            </div>
                     @endif
 
                     @if(adminAccessRoute(config('role.manage_result.access.view')))

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SheduleMakerController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\TournamentController;
@@ -94,6 +95,14 @@ Route::group(['prefix' => $basicControl->admin_prefix ?? 'admin', 'as' => 'admin
             Route::get('/bet-history', 'betList')->name('historyBet');
             Route::get('/bet-history/search', 'betSearch')->name('searchBet');
             Route::post('/bet/refund', 'betRefund')->name('refundBet');
+        });
+
+
+        //Manage Shedule
+        Route::controller(SheduleMakerController::class)->group(function () {
+            Route::get('schedule/list', 'scheduleList')->name('listSchedule');
+            Route::get('schedule/create', 'scheduleCreate')->name('createSchedule');
+            Route::post('schedule/generate', 'generateSchedule')->name('generateSchedule');
         });
     });
 });
