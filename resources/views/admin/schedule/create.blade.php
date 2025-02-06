@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('page_title','Schedule List')
+@section('page_title','Create Schedule')
 @section('content')
     <div class="content container-fluid">
         <div class="page-header">
@@ -8,10 +8,10 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-no-gutter">
                             <li class="breadcrumb-item"><a class="breadcrumb-link" href="javascript:void(0)">Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Schedule List</li>
+                            <li class="breadcrumb-item active" aria-current="page">CreateSchedule</li>
                         </ol>
                     </nav>
-                    <h1 class="page-header-title">Schedule List</h1>
+                    <h1 class="page-header-title">Create Schedule</h1>
                 </div>
                 <div class="col-sm-auto">
                 </div>
@@ -81,7 +81,7 @@
                             <div id="venues-section" class="border p-3 rounded">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h4 class="mb-0">Venues</h4>
-                                    <button type="button" id="add-venue" class="btn btn-secondary">Add Another Venue</button>
+                                    <button type="button" id="add-venue" class="btn btn-danger btn-xs">Add Another Venue</button>
                                 </div>
 
                                 <div class="venue border p-3 rounded mb-3">
@@ -112,7 +112,7 @@
 
 
                             <!-- Submit Button -->
-                            <button type="submit" class="btn btn-primary">Create Tournament</button>
+                            <button type="submit" class="btn btn-primary btn-sm mt-3">Create Tournament</button>
                         </form>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
             let newVenueDiv = `
             <div class="venue border p-3 rounded mb-3 bg-light" id="venue-${venueCount}">
                 <div class="d-flex justify-content-end align-items-center">
-                    <button type="button" class="btn btn-danger btn-sm remove-venue" data-id="${venueCount}">Remove</button>
+                    <button type="button" class="btn btn-danger btn-xs remove-venue" data-id="${venueCount}">Remove</button>
                 </div>
 
                 <div class="form-group mb-3">

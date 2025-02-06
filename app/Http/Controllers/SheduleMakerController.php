@@ -17,11 +17,18 @@ class SheduleMakerController extends Controller
 
     public function scheduleList()
     {
-        return view('admin.schedule.list');
+        $data['schedules'] = Schedule::all();
+        return view('admin.schedule.list', $data);
     }
     public function scheduleCreate()
     {
         return view('admin.schedule.create');
+    }
+
+    public function scheduleEdit($id)
+    {
+        $data['schedule'] = Schedule::with(['venues', 'participants', 'matchSchedules', 'standings', 'groups'])->find($id);
+        return view('admin.schedule.edit', $data);
     }
     public function generateSchedule(Request $request)
     {
@@ -123,11 +130,10 @@ class SheduleMakerController extends Controller
             // Commit the transaction
             DB::commit();
 
-            return response()->json(['message' => 'Tournament created successfully', 'schedule' => $schedule], 200);
+            return redirect()->route('admin.editSchedule', $schedule->id)->with('success', 'Successfully Schedule Created.');
         } catch (\Exception $e) {
-            // Rollback the transaction in case of an error
             DB::rollBack();
-            return response()->json(['error' => 'An error occurred while creating the tournament', 'message' => $e->getMessage()], 500);
+            return back()->with('error', $e->getMessage());
         }
     }
 

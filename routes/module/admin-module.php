@@ -102,6 +102,7 @@ Route::group(['prefix' => $basicControl->admin_prefix ?? 'admin', 'as' => 'admin
         Route::controller(SheduleMakerController::class)->group(function () {
             Route::get('schedule/list', 'scheduleList')->name('listSchedule');
             Route::get('schedule/create', 'scheduleCreate')->name('createSchedule');
+            Route::get('schedule/edit/{id}', 'scheduleEdit')->name('editSchedule');
             Route::post('schedule/generate', 'generateSchedule')->name('generateSchedule');
         });
     });

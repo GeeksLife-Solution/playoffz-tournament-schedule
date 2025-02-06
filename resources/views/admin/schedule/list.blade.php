@@ -17,8 +17,8 @@
                 </div>
                 <div class="col-sm-auto">
                     @if(adminAccessRoute(config('role.manage_game.access.add')))
-                        <a class="btn btn-primary" href="{{route('admin.createSchedule')}}">
-                            <i class="fas fa-gamepad me-1"></i> @lang('Add New')
+                        <a class="btn btn-primary btn-sm" href="{{route('admin.createSchedule')}}">
+                            <i class="fas fa-plus-circle me-1"></i> @lang('Add New')
                         </a>
                     @endif
                 </div>
@@ -29,7 +29,34 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        Schedule list here
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm table-striped">
+                                <thead class="thead-light">
+                                <tr>
+                                    <th>Sport</th>
+                                    <th>Type Of Schedule</th>
+                                    <th>Number Of Team</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($schedules as $schedule)
+                                <tr>
+                                    <td>{{$schedule->sport}}</td>
+                                    <td>{{$schedule->type_of_schedule}}</td>
+                                    <td>{{$schedule->num_teams}}</td>
+                                    <td>{{$schedule->start_date}}</td>
+                                    <td>{{$schedule->end_date}}</td>
+                                    <td>
+                                        <a href="{{route('admin.editSchedule', $schedule->id)}}" class="btn btn-info btn-xs">Manage Schedule</a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
