@@ -9,11 +9,19 @@ use App\Models\Group;
 use App\Models\MatchSchedule;
 use App\Models\Scoring;
 use App\Models\Standing;
+use App\Services\PlayoffzApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SheduleMakerController extends Controller
 {
+
+    protected $playOffzApiService;
+
+    public function __construct(PlayoffzApiService $playOffzApiService)
+    {
+        $this->playOffzApiService = $playOffzApiService;
+    }
 
     public function scheduleList()
     {
@@ -22,8 +30,16 @@ class SheduleMakerController extends Controller
     }
     public function scheduleCreate()
     {
-        return view('admin.schedule.create');
+        $data['tournaments'] = collect($this->playOffzApiService->getEvents());
+        return view('admin.schedule.create', $data);
     }
+
+    public function getCategories()
+    {
+        $categories = $this->playOffzApiService->getCategories();
+        return response()->json($categories);
+    }
+
 
     public function scheduleEdit($id)
     {
@@ -40,7 +56,6 @@ class SheduleMakerController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'venues' => 'required|array',
-            'venues.*.venue_name' => 'required|string|max:255',
             'venues.*.venue_type' => 'required|in:Court,Lane,Ground,Table,Track,Other',
         ]);
 
@@ -58,10 +73,10 @@ class SheduleMakerController extends Controller
             ]);
 
             // 2. Create Venues
-            foreach ($validated['venues'] as $venueData) {
+            foreach ($validated['venues'] as $key =>  $venueData) {
                 Venue::create([
                     'schedule_id' => $schedule->id,
-                    'venue_name' => $venueData['venue_name'],
+                    'venue_name' => $venueData['venue_type'] . ' '. $key + 1,
                     'venue_type' => $venueData['venue_type'],
                     'location_details' => $venueData['location_details'] ?? null,
                     'availability' => true, // Default availability set to true

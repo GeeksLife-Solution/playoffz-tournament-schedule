@@ -24,6 +24,8 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/custom.css') }}">
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     @stack('css')
 
     <style data-hs-appearance-onload-styles>
@@ -118,6 +120,9 @@
 <script src="{{ asset('assets/admin/js/jquery-migrate.min.js') }}"></script>
 <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
 <!-- JS Implementing Plugins -->
 <script src="{{ asset('assets/admin/js/hs-navbar-vertical-aside.min.js') }}"></script>
 
@@ -138,6 +143,15 @@
 <script>
 
     (function () {
+        // Initialize Select2 and map
+        $('.select2').select2();
+
+        $(".select2Tags").select2({
+            tags: true,
+            tokenSeparators: [',', ' ']
+        })
+
+
         // new HSSideNav('.js-navbar-vertical-aside').init()
         // STYLE SWITCHER
         const $dropdownBtn = document.getElementById('selectThemeDropdown') // Dropdown trigger

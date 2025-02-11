@@ -104,6 +104,7 @@ Route::group(['prefix' => $basicControl->admin_prefix ?? 'admin', 'as' => 'admin
             Route::get('schedule/create', 'scheduleCreate')->name('createSchedule');
             Route::get('schedule/edit/{id}', 'scheduleEdit')->name('editSchedule');
             Route::post('schedule/generate', 'generateSchedule')->name('generateSchedule');
+            Route::get('ajax/get-categories', 'getCategories');
         });
     });
 });
