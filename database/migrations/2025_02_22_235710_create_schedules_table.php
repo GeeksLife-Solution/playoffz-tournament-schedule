@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            $table->string('sport');
-            $table->integer('num_teams');
-            $table->enum('type_of_schedule', ['Knockout', 'League', 'Round Robin', 'Swiss']);
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->unsignedBigInteger('tournament_id');
+            $table->date('match_date');
+            $table->unsignedBigInteger('court_id');
+            $table->unsignedBigInteger('team1_id');
+            $table->unsignedBigInteger('team2_id');
+            $table->unsignedBigInteger('player1_id');
+            $table->unsignedBigInteger('player2_id');
             $table->timestamps();
         });
     }
