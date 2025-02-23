@@ -60,24 +60,49 @@
         </div>
         <ul class="main">
             <li>
-                <a href="{{route('user.dashboard')}}" class="{{menuActive('user.dashboard')}}">
+                <a href="#dashboard" class="{{menuActive('user.dashboard')}}">
                     <i class="fal fa-home"></i>
-                    @lang('Dashboard')
+                    Dashboard
                 </a>
             </li>
             <li>
-                <a href="{{route('user.twostep.security')}}" class="{{menuActive('user.twostep.security')}}">
-                    <i class="fas fa-key"></i>
-                    @lang('2FA Security')
+                <a href="#tournaments" class="{{menuActive('user.tournaments')}}">
+                    <i class="fal fa-trophy"></i>
+                    Tournaments
                 </a>
             </li>
             <li>
-                <a href="{{route('user.profile')}}" class="{{menuActive('user.profile')}}">
-                    <i class="fal fa-user"></i>
-                    @lang('personal profile')
+                <a href="#players" class="{{menuActive('user.players')}}">
+                    <i class="fal fa-users"></i>
+                    Players
+                </a>
+            </li>
+            <li>
+                <a href="#courts" class="{{menuActive('user.courts')}}">
+                    <i class="fal fa-map-marker-alt"></i>
+                    Courts
+                </a>
+            </li>
+            <li>
+                <a href="#teams" class="{{menuActive('user.teams')}}">
+                    <i class="fal fa-users-cog"></i>
+                    Teams
+                </a>
+            </li>
+            <li>
+                <a href="#groups" class="{{menuActive('user.groups')}}">
+                    <i class="fal fa-users"></i>
+                    Groups
+                </a>
+            </li>
+            <li>
+                <a href="#schedule" class="{{menuActive('user.schedule')}}">
+                    <i class="fal fa-calendar-alt"></i>
+                    Schedule
                 </a>
             </li>
         </ul>
+
     </div>
 
     <div class="content user-panel">
