@@ -66,61 +66,6 @@
                 </a>
             </li>
             <li>
-                <a href="{{route('user.add.fund')}}" class="{{menuActive('user.add.fund')}}">
-                    <i class="fal fa-money-bill"></i>
-                    @lang('Make A Deposit')
-                </a>
-            </li>
-
-            <li>
-                <a href="{{route('user.fund.index')}}" class="{{menuActive('user.fund.index')}}">
-                    <i class="fal fa-hand-holding-usd"></i>
-                    @lang('deposit history')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.transaction')}}" class="{{menuActive('user.transaction')}}">
-                    <i class="far fa-money-check-edit"></i>
-                    @lang('Transaction')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.betHistory')}}" class="{{menuActive('user.betHistory')}}">
-                    <i class="fal fa-history"></i>
-                    @lang('bet history')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.ticket.list')}}" class="{{menuActive('user.ticket.list')}}">
-                    <i class="fas fa-headset"></i>
-                    @lang('Support Tickets')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.payout')}}" class="{{menuActive('user.payout')}}">
-                    <i class="fas fa-envelope-open-dollar"></i>
-                    @lang('Withdraw Funds')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.payout.index')}}" class="{{menuActive('user.payout.index')}}">
-                    <i class="fal fa-wallet"></i>
-                    @lang('payouts history')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.referral')}}" class="{{menuActive('user.referral')}}">
-                    <i class="fal fa-user-friends"></i>
-                    @lang('invite friends')
-                </a>
-            </li>
-            <li>
-                <a href="{{route('user.referral.bonus')}}" class="{{menuActive('user.referral.bonus')}}">
-                    <i class="fal fa-cog"></i>
-                    @lang('Referral Bonus')
-                </a>
-            </li>
-            <li>
                 <a href="{{route('user.twostep.security')}}" class="{{menuActive('user.twostep.security')}}">
                     <i class="fas fa-key"></i>
                     @lang('2FA Security')

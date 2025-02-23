@@ -139,72 +139,6 @@
                         </div>
                     @endif
 
-                    @if(adminAccessRoute(config('role.commission_setting.access.view')))
-                        <span class="dropdown-header mt-4">@lang('Referral')</span>
-                        <small class="bi-three-dots nav-subtitle-replacer"></small>
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.referral-commission']) }}"
-                               href="{{ route('admin.referral-commission') }}" data-placement="left">
-                                <i class="fas fa-users nav-icon"></i>
-                                <span class="nav-link-title">@lang("Referral Setting")</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.commission']) }}"
-                               href="{{ route('admin.commission') }}" data-placement="left">
-                                <i class="fas fa-money-bill-alt nav-icon"></i>
-                                <span class="nav-link-title">@lang("Commission")</span>
-                            </a>
-                        </div>
-                    @endif
-
-
-                    <span class="dropdown-header mt-4">@lang('Transactions')</span>
-                    <small class="bi-three-dots nav-subtitle-replacer"></small>
-                    @if(adminAccessRoute(config('role.all_transaction.access.view')))
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.transaction']) }}"
-                               href="{{ route('admin.transaction') }}" data-placement="left">
-                                <i class="bi bi-send nav-icon"></i>
-                                <span class="nav-link-title">@lang("Transaction")</span>
-                            </a>
-                        </div>
-
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.historyBet']) }}"
-                               href="{{ route('admin.historyBet') }}" data-placement="left">
-                                <i class="fas fa-tag nav-icon "></i>
-                                <span class="nav-link-title">@lang("Bet History")</span>
-                            </a>
-                        </div>
-                    @endif
-
-                    @if(adminAccessRoute(config('role.payout_manage.access.view')))
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.payout.log']) }}"
-                               href="{{ route('admin.payout.log') }}" data-placement="left">
-                                <i class="bi bi-wallet2 nav-icon "></i>
-                                <span class="nav-link-title">@lang("Withdraw Log")</span>
-                            </a>
-                        </div>
-                    @endif
-
-                    @if(adminAccessRoute(config('role.payment_log.access.view')))
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.payment.log']) }}"
-                               href="{{ route('admin.payment.log') }}" data-placement="left">
-                                <i class="bi bi-credit-card-2-front nav-icon"></i>
-                                <span class="nav-link-title">@lang("Payment Log")</span>
-                            </a>
-                        </div>
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.payment.pending']) }}"
-                               href="{{ route('admin.payment.pending') }}" data-placement="left">
-                                <i class="bi bi-cash nav-icon"></i>
-                                <span class="nav-link-title">@lang("Payment Request")</span>
-                            </a>
-                        </div>
-                    @endif
 
                     @if(adminAccessRoute(config('role.support_ticket.access.view')))
                         <span class="dropdown-header mt-4"> @lang("Ticket Panel")</span>
@@ -232,46 +166,6 @@
                                    href="{{ route('admin.ticket', 'replied') }}">@lang("Replied Ticket")</a>
                                 <a class="nav-link {{ request()->is('admin/tickets/closed') ? 'active' : '' }}"
                                    href="{{ route('admin.ticket', 'closed') }}">@lang("Closed Ticket")</a>
-                            </div>
-                        </div>
-                    @endif
-
-                    @if(adminAccessRoute(config('role.identify_form.access.view')))
-                        <span class="dropdown-header mt-4"> @lang('Kyc Management')</span>
-                        <small class="bi-three-dots nav-subtitle-replacer"></small>
-                        <div class="nav-item">
-                            <a class="nav-link {{ menuActive(['admin.kyc.form.list','admin.kyc.edit','admin.kyc.create']) }}"
-                               href="{{ route('admin.kyc.form.list') }}" data-placement="left">
-                                <i class="bi-stickies nav-icon"></i>
-                                <span class="nav-link-title">@lang('KYC Setting')</span>
-                            </a>
-                        </div>
-
-                        <div class="nav-item" {{ menuActive(['admin.kyc.list*','admin.kyc.view'], 3) }}>
-                            <a class="nav-link dropdown-toggle collapsed" href="#navbarVerticalKycRequestMenu"
-                               role="button"
-                               data-bs-toggle="collapse" data-bs-target="#navbarVerticalKycRequestMenu"
-                               aria-expanded="false"
-                               aria-controls="navbarVerticalKycRequestMenu">
-                                <i class="bi bi-person-lines-fill nav-icon"></i>
-                                <span class="nav-link-title">@lang("KYC Request")</span>
-                            </a>
-                            <div id="navbarVerticalKycRequestMenu"
-                                 class="nav-collapse collapse {{ menuActive(['admin.kyc.list*','admin.kyc.view'], 2) }}"
-                                 data-bs-parent="#navbarVerticalKycRequestMenu">
-
-                                <a class="nav-link {{ Request::is('admin/kyc/pending') ? 'active' : '' }}"
-                                   href="{{ route('admin.kyc.list', 'pending') }}">
-                                    @lang('Pending KYC')
-                                </a>
-                                <a class="nav-link {{ Request::is('admin/kyc/approve') ? 'active' : '' }}"
-                                   href="{{ route('admin.kyc.list', 'approve') }}">
-                                    @lang('Approved KYC')
-                                </a>
-                                <a class="nav-link {{ Request::is('admin/kyc/rejected') ? 'active' : '' }}"
-                                   href="{{ route('admin.kyc.list', 'rejected') }}">
-                                    @lang('Rejected KYC')
-                                </a>
                             </div>
                         </div>
                     @endif
@@ -331,57 +225,6 @@
                             </a>
                         </div>
                     @endif
-
-                    @if(adminAccessRoute(config('role.payment_gateway.access.view')))
-                        <div
-                            class="nav-item {{ menuActive(['admin.payment.methods', 'admin.edit.payment.methods', 'admin.deposit.manual.index', 'admin.deposit.manual.create', 'admin.deposit.manual.edit'], 3) }}">
-                            <a class="nav-link dropdown-toggle"
-                               href="#navbarVerticalGatewayMenu"
-                               role="button"
-                               data-bs-toggle="collapse"
-                               data-bs-target="#navbarVerticalGatewayMenu"
-                               aria-expanded="false"
-                               aria-controls="navbarVerticalGatewayMenu">
-                                <i class="bi-briefcase nav-icon"></i>
-                                <span class="nav-link-title">@lang('Payment Setting')</span>
-                            </a>
-                            <div id="navbarVerticalGatewayMenu"
-                                 class="nav-collapse collapse {{ menuActive(['admin.payment.methods', 'admin.edit.payment.methods', 'admin.deposit.manual.index', 'admin.deposit.manual.create', 'admin.deposit.manual.edit'], 2) }}"
-                                 data-bs-parent="#navbarVerticalGatewayMenu">
-
-                                <a class="nav-link {{ menuActive(['admin.payment.methods', 'admin.edit.payment.methods',]) }}"
-                                   href="{{ route('admin.payment.methods') }}">@lang('Payment Gateway')</a>
-
-                                <a class="nav-link {{ menuActive([ 'admin.deposit.manual.index', 'admin.deposit.manual.create', 'admin.deposit.manual.edit']) }}"
-                                   href="{{ route('admin.deposit.manual.index') }}">@lang('Manual Gateway')</a>
-                            </div>
-                        </div>
-                    @endif
-
-                    @if(adminAccessRoute(config('role.payout_manage.access.view')))
-                        <div class="nav-item">
-                            <a class="nav-link dropdown-toggle {{ menuActive(['admin.payout.method.list','admin.payout.method.create','admin.manual.method.edit','admin.payout.method.edit','admin.payout.withdraw.days'], 3) }}"
-                               href="#navbarVerticalWithdrawMenu"
-                               role="button"
-                               data-bs-toggle="collapse"
-                               data-bs-target="#navbarVerticalWithdrawMenu"
-                               aria-expanded="false"
-                               aria-controls="navbarVerticalWithdrawMenu">
-                                <i class="bi bi-wallet2 nav-icon"></i>
-                                <span class="nav-link-title">@lang('Withdraw Setting')</span>
-                            </a>
-                            <div id="navbarVerticalWithdrawMenu"
-                                 class="nav-collapse collapse {{ menuActive(['admin.payout.method.list','admin.payout.method.create','admin.manual.method.edit','admin.payout.method.edit','admin.payout.withdraw.days'], 2) }}"
-                                 data-bs-parent="#navbarVerticalWithdrawMenu">
-                                <a class="nav-link {{ menuActive(['admin.payout.method.list','admin.payout.method.create','admin.manual.method.edit','admin.payout.method.edit']) }}"
-                                   href="{{ route('admin.payout.method.list') }}">@lang('Withdraw Method')</a>
-
-                                <a class="nav-link  {{ menuActive(['admin.payout.withdraw.days']) }}"
-                                   href="{{ route("admin.payout.withdraw.days") }}">@lang('Withdrawal Days Setup')</a>
-                            </div>
-                        </div>
-                    @endif
-
 
                     @if(adminAccessRoute(config('role.theme_settings.access.view')))
                         <span class="dropdown-header mt-4">@lang("Themes Settings")</span>
