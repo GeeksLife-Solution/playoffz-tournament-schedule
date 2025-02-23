@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Helpers\UserSystemInfo;
 use App\Http\Controllers\Controller;
 use App\Models\ContentDetails;
+use App\Models\User;
 use App\Models\UserLogin;
 use App\Providers\RouteServiceProvider;
 use Carbon\Carbon;
@@ -13,9 +14,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Facades\App\Services\Google\GoogleRecaptchaService;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\Client\RequestException;
 
 class LoginController extends Controller
 {
@@ -77,6 +82,46 @@ class LoginController extends Controller
             $this->hasTooManyLoginAttempts($request)) {
             $this->fireLockoutEvent($request);
             return $this->sendLockoutResponse($request);
+        }
+
+        // Check if the user exists locally
+        $user = User::where($this->username(), $request->username)->first();
+
+        if (!$user) {
+            $data = [
+                'email' => $request->username,
+                'password' => $request->password,
+                'type' => 'Orgnizer'
+            ];
+
+            try {
+                $response = Http::withOptions([
+                    'verify' => false,
+                ])->withHeaders([
+                    'Content-Type' => 'application/json'
+                ])->post('https://app.playoffz.in/orag_api/u_login_user.php', $data);
+
+                if ($response->successful()) {
+                    $apiUserData = $response->json();
+
+                    if (isset($apiUserData['OragnizerLogin'])) {
+                        $organizer = $apiUserData['OragnizerLogin'];
+
+                        User::create([
+                            'username' => $organizer['title'],
+                            'email' => $organizer['email'],
+                            'phone' => $organizer['mobile'],
+                            'password' => Hash::make($request->password)
+                        ]);
+                    } else {
+                        return response()->json('These credentials do not match our records.' , 401);
+                    }
+                } else {
+                    return response()->json('These credentials do not match our records.',401);
+                }
+            } catch (RequestException $e) {
+                return response()->json('These credentials do not match our records.' . $e->getMessage(), 401);
+            }
         }
 
         if ($this->guard()->validate($this->credentials($request))) {
