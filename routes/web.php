@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\User\SheduleMakerController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\DepositController;
 use App\Http\Controllers\User\PayoutController;
@@ -170,6 +171,15 @@ Route::group(['middleware' => ['maintenanceMode']], function () use ($basicContr
             Route::get('/referral-bonus', [HomeController::class, 'referralBonus'])->name('referral.bonus');
             Route::get('/referral-bonus/search', [HomeController::class, 'referralBonusSearch'])->name('referral.bonus.search');
 
+        });
+
+        //user panel schedule maker
+        Route::controller(SheduleMakerController::class)->group(function () {
+            Route::get('schedule/list', 'scheduleList')->name('listSchedule');
+            Route::get('schedule/create', 'scheduleCreate')->name('createSchedule');
+            Route::get('schedule/edit/{id}', 'scheduleEdit')->name('editSchedule');
+            Route::post('schedule/generate', 'generateSchedule')->name('generateSchedule');
+            Route::get('ajax/get-categories', 'getCategories');
         });
     });
 

@@ -96,7 +96,7 @@
                 </a>
             </li>
             <li>
-                <a href="#schedule" class="{{menuActive('user.schedule')}}">
+                <a href="{{ route('user.listSchedule') }}" class="{{menuActive('user.listSchedule')}}">
                     <i class="fal fa-calendar-alt"></i>
                     Schedule
                 </a>
