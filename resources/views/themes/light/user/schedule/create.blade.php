@@ -33,7 +33,7 @@
                                     <select id="tournament_id" name="tournament_id" class="form-control" required>
                                         <option value="">Select Tournament</option>
                                         @foreach($tournaments as $tournament)
-                                            <option value="{{ json_encode($tournament)}}">
+                                            <option value="{{ $tournament['event_id']}}">
                                                 {{$tournament['event_title']}}
                                             </option>
                                         @endforeach
@@ -58,16 +58,8 @@
 
                             <!-- Number of Players -->
                             <div class="form-group mb-3">
-                                <label for="num_players" class="mb-2">Players/Teams
-                                    <span id="importExcel" style="color: blue; cursor: pointer; text-decoration: underline;">
-                                        Import Excel
-                                    </span>
-                                </label>
-
-                                <!-- Hidden file input -->
-                                <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;">
-                                <select id="num_players" name="num_players" class="form-control select2Tags" multiple
-                                        required></select>
+                                <label for="num_players" class="mb-2">Total No. Of Players/Teams</label>
+                                <input type="number" min="1" class="form-control" id="num_players" name="num_players">
                                 @error('num_players')
                                 <div class="text-danger">{{ $message }}</div>
                                 @enderror
@@ -77,18 +69,23 @@
                             <div class="form-group mb-3">
                                 <label for="schedule_type">Schedule Type</label>
                                 <select name="schedule_type" class="form-control" required>
-                                    <option value="Knockout" {{ old('schedule_type') == 'Knockout' ? 'selected' : '' }}>
-                                        Knockout
+                                    <option value="Knockout_(Single_Elimination)" {{ old('schedule_type') == 'Knockout_(Single_Elimination)' ? 'selected' : '' }}>
+                                        Knockout (Single Elimination)
                                     </option>
-                                    <option value="League" {{ old('schedule_type') == 'League' ? 'selected' : '' }}>
-                                        League
+                                    <option value="Double_Elimination" {{ old('schedule_type') == 'Double_Elimination' ? 'selected' : '' }}>
+                                        Double Elimination
                                     </option>
-                                    <option
-                                        value="Round Robin" {{ old('schedule_type') == 'Round Robin' ? 'selected' : '' }}>
-                                        Round Robin
+                                    <option value="League_(Round_Robin)" {{ old('schedule_type') == 'League_(Round_Robin)' ? 'selected' : '' }}>
+                                        League (Round Robin)
                                     </option>
-                                    <option value="Swiss" {{ old('schedule_type') == 'Swiss' ? 'selected' : '' }}>
-                                        Swiss
+                                    <option value="League_Cum_Knockout" {{ old('schedule_type') == 'League_Cum_Knockout' ? 'selected' : '' }}>
+                                        League Cum Knockout
+                                    </option>
+                                    <option value="Swiss_System" {{ old('schedule_type') == 'Swiss_System' ? 'selected' : '' }}>
+                                        Swiss System
+                                    </option>
+                                    <option value="Ladder_System" {{ old('schedule_type') == 'Ladder_System' ? 'selected' : '' }}>
+                                        Ladder System
                                     </option>
                                 </select>
                                 @error('schedule_type')
@@ -96,51 +93,31 @@
                                 @enderror
                             </div>
 
-                            <!-- Start Date -->
+                            <!-- Number of Groups -->
                             <div class="form-group mb-3">
-                                <label for="start_date">Start Date</label>
-                                <input type="date" name="start_date" id="start_date" class="form-control"
-                                       value="{{ old('start_date') }}" required>
-                                @error('start_date')
+                                <label for="num_groups" class="mb-2">Total No. Of Groups</label>
+                                <input type="number" min="1" class="form-control" id="num_groups" name="num_groups">
+                                @error('num_groups')
                                 <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- End Date -->
+                            <!-- Number of Courts -->
                             <div class="form-group mb-3">
-                                <label for="end_date">End Date</label>
-                                <input type="date" name="end_date" id="end_date" class="form-control"
-                                       value="{{ old('end_date') }}" required>
-                                @error('end_date')
+                                <label for="num_courts" class="mb-2">Total No. Of Courts</label>
+                                <input type="number" min="1" class="form-control" id="num_courts" name="num_courts">
+                                @error('num_courts')
                                 <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Venues Section -->
-                            <div id="venues-section" class="border p-3 rounded">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h4 class="mb-0">Venues</h4>
-                                    <button type="button" id="add-venue" class="btn btn-danger btn-xs">Add Another
-                                        Venue
-                                    </button>
-                                </div>
-
-                                <div class="venue border p-3 rounded mb-3">
-                                    <div class="form-group mb-3">
-                                        <label for="venue_type">Venue Type</label>
-                                        <select name="venues[0][venue_type]" class="form-control" required>
-                                            <option value="Court">Court</option>
-                                            <option value="Lane">Lane</option>
-                                            <option value="Ground">Ground</option>
-                                            <option value="Table">Table</option>
-                                            <option value="Track">Track</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        @error('venues.0.venue_type')
-                                        <div class="text-danger">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+                            <!-- Sets Per Match -->
+                            <div class="form-group mb-3">
+                                <label for="sets_per_match" class="mb-2">Sets Per Match</label>
+                                <input type="number" min="1" class="form-control" id="sets_per_match" name="sets_per_match">
+                                @error('sets_per_match')
+                                <div class="text-danger">{{ $message }}</div>
+                                @enderror
                             </div>
 
 
@@ -210,7 +187,7 @@
                 let tournament = JSON.parse(selectedValue);
                 let category_id = tournament.event_cat_id;
 
-                $.get(`/admin/ajax/get-categories`, function (data) {
+                $.get(`/user/ajax/get-categories`, function (data) {
                     data.forEach(d => {
                         let isSelected = d.id == category_id ? 'selected' : '';
                         $('#category_id').append(`<option value='${d.id}' ${isSelected}>${d.title}</option>`);
