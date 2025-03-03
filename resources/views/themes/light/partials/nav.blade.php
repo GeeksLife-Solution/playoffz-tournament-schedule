@@ -36,7 +36,7 @@
                                 @lang('Dashboard')
                             </a>
                         </li>
-                        <li>
+                        {{-- <li>
                             <a class="dropdown-item {{menuActive('user.add.fund')}}" href="{{route('user.add.fund')}}">
                                 <i class="fal fa-money-bill"></i>
                                 @lang('Make a deposit')
@@ -68,7 +68,7 @@
                                 <i class="fal fa-history"></i>
                                 @lang('bet history')
                             </a>
-                        </li>
+                        </li> --}}
 
                         <li>
                             <a class="dropdown-item" href="{{ route('logout') }}"
