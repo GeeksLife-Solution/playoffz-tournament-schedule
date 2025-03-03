@@ -10,6 +10,7 @@ use App\Models\Language;
 use App\Models\PageDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('template')) {
     function template($asset = false)
@@ -17,6 +18,23 @@ if (!function_exists('template')) {
         $activeTheme = basicControl()->theme??'light';
         if ($asset) return 'assets/themes/' . $activeTheme . '/';
         return 'themes.' . $activeTheme . '.';
+    }
+}
+
+if (!function_exists('encryptUrl')) {
+    function encryptUrl($url, $param)
+    {
+        // Serialize the array before encrypting
+        $encryptedParam = Crypt::encrypt(serialize($param)); 
+        return $url . '?eq=' . urlencode($encryptedParam);
+    }
+}
+
+if (!function_exists('decryptUrlParam')) {
+    function decryptUrlParam($encryptedParam)
+    {
+        // Decrypt and unserialize the data
+        return unserialize(Crypt::decrypt(urldecode($encryptedParam)));
     }
 }
 

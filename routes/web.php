@@ -4,6 +4,9 @@ use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\FrontendController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\User\HomeController;
+use App\Http\Controllers\User\ScheduleController;
+use App\Http\Controllers\User\WaiverController;
+use App\Http\Controllers\User\MemberController;
 use App\Http\Controllers\User\DepositController;
 use App\Http\Controllers\User\PayoutController;
 use App\Http\Controllers\ManualRecaptchaController;
@@ -112,6 +115,38 @@ Route::group(['middleware' => ['maintenanceMode']], function () use ($basicContr
                 Route::post('save-token', [HomeController::class, 'saveToken'])->name('save.token');
                 Route::get('add-fund', [HomeController::class, 'addFund'])->name('add.fund');
                 Route::get('funds', [HomeController::class, 'fund'])->name('fund.index');
+
+                /* ===== Playpass Routes START ===== */
+                Route::get('list-schedule', [ScheduleController::class, 'listSchedule'])->name('schedule.list');
+
+                Route::get('create-schedule', [ScheduleController::class, 'createSchedule'])->name('schedule.create');
+                Route::post('store-schedule', [ScheduleController::class, 'storeSchedule'])->name('schedule.store');
+
+                Route::get('edit-schedule', [ScheduleController::class, 'editSchedule'])->name('schedule.edit');
+
+                // Registeration
+                Route::get('registrations', [ScheduleController::class, 'Registrations'])->name('registrations');
+
+                // MEMBER ROUTES 
+                Route::get('add-member', [MemberController::class, 'addMember'])->name('member.add');
+                Route::post('store-member', [MemberController::class, 'storeMember'])->name('member.store');
+                Route::post('update-member', [MemberController::class, 'updateMember'])->name('member.update');
+
+                Route::get('list-member', [MemberController::class, 'listMember'])->name('member.list');
+                Route::post('destroy-member', [MemberController::class, 'destroyMember'])->name('member.destroy');
+
+
+                // waiver ROUTES 
+                Route::get('new-waiver', [WaiverController::class, 'newWaiver'])->name('waiver.create');
+                Route::post('store-waiver', [WaiverController::class, 'storeWaiver'])->name('waiver.store');
+                Route::get('list-waiver', [WaiverController::class, 'listWaiver'])->name('waiver.list');
+                Route::post('update-waiver', [WaiverController::class, 'updateWaiver'])->name('waiver.update');
+                Route::post('destroy-waiver', [WaiverController::class, 'destroyWaiver'])->name('waiver.destroy');
+
+                
+                /* ===== Playpass Routes END ===== */
+
+                
 
                 Route::get('transaction-list', [HomeController::class, 'transaction'])->name('transaction');
 

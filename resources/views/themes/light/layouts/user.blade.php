@@ -29,7 +29,6 @@
 
 <!-- navbar -->
 @include($theme.'partials.nav')
-
 <!-- wrapper -->
 <div class="wrapper">
     <!-- leftbar -->
@@ -60,36 +59,36 @@
         </div>
         <ul class="main">
             <li>
-                <a href="#dashboard" class="{{menuActive('user.dashboard')}}">
+                <a href="{{route('user.dashboard')}}" class="{{menuActive('user.dashboard')}}">
                     <i class="fal fa-home"></i>
                     Dashboard
                 </a>
             </li>
             <li>
-                <a href="#tournaments" class="{{menuActive('user.tournaments')}}">
+                <a href="{{route('user.schedule.list')}}" class="{{menuActive('user.schedule.list')}}">
                     <i class="fal fa-trophy"></i>
-                    Tournaments
+                    Schedules
                 </a>
             </li>
             <li>
-                <a href="#players" class="{{menuActive('user.players')}}">
+                <a href="{{route('user.registrations')}}" class="{{menuActive('user.registrations')}}">
                     <i class="fal fa-users"></i>
-                    Players
+                    Registrations
                 </a>
             </li>
             <li>
-                <a href="#courts" class="{{menuActive('user.courts')}}">
+                <a href="{{route('user.member.list')}}" class="{{menuActive('user.member.list')}}">
                     <i class="fal fa-map-marker-alt"></i>
-                    Courts
+                    Members
                 </a>
             </li>
             <li>
-                <a href="#teams" class="{{menuActive('user.teams')}}">
+                <a href="{{route('user.waiver.list')}}" class="{{menuActive('user.waiver.list')}}">
                     <i class="fal fa-users-cog"></i>
-                    Teams
+                    Waivers
                 </a>
             </li>
-            <li>
+            {{-- <li>
                 <a href="#groups" class="{{menuActive('user.groups')}}">
                     <i class="fal fa-users"></i>
                     Groups
@@ -100,7 +99,7 @@
                     <i class="fal fa-calendar-alt"></i>
                     Schedule
                 </a>
-            </li>
+            </li> --}}
         </ul>
 
     </div>
