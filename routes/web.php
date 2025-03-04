@@ -124,6 +124,8 @@ Route::group(['middleware' => ['maintenanceMode']], function () use ($basicContr
 
                 Route::get('edit-schedule', [ScheduleController::class, 'editSchedule'])->name('schedule.edit');
 
+                Route::post('update-match', [ScheduleController::class, 'updateMatch'])->name('update.match');
+
                 // Registeration
                 Route::get('registrations', [ScheduleController::class, 'Registrations'])->name('registrations');
 

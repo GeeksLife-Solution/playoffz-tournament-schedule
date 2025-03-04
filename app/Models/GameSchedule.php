@@ -16,4 +16,15 @@ class GameSchedule extends Model
         return $this->belongsTo(GameCategory::class,'category_id' );
     }
 
+    public function gameTeams()
+    {
+        return $this->hasMany(GameTeam::class, 'schedule_id', 'id');
+    }
+
+    public function gameMatch()
+    {
+        return $this->hasMany(GameMatch::class, 'schedule_id', 'id')->with('team1', 'team2');
+    }    
+    
+
 }

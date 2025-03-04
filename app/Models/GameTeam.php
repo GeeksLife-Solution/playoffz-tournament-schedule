@@ -8,17 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class GameTeam extends Model
 {
     use HasFactory;
-
-    public function gameCategory()
-    {
-        return $this->belongsTo(GameCategory::class,'category_id' );
-    }
-    public function gameTeam1()
-    {
-        return $this->hasMany(GameMatch::class,'team1_id');
-    }
-    public function gameTeam2()
-    {
-        return $this->hasMany(GameMatch::class,'team2_id');
-    }
+    protected $table='game_team';
+    protected $fillable = ['schedule_id','name','team_number','created_at','updated_at','status'];
 }

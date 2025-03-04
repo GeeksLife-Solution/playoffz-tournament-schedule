@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Auth;
 use App\Models\GameCategory;
 use App\Models\GameSchedule;
-
+use App\Models\GameTeam;
+use App\Models\GameMatch;
 class ScheduleController extends Controller
 {
    public function listSchedule(){
     $title = "List Schedule";
     $userId = Auth::id();
-    $data['schedule'] = GameSchedule::with('gameCategory')->where('user_id',$userId)->where('status',1)->get();
+    $data['schedule'] = GameSchedule::with('gameCategory')->where('user_id',$userId)->where('status',1)->orderBy('id','DESC')->get();
     return view(template() . 'user.schedule.list',compact('title','data'));
    }
 
@@ -25,7 +26,7 @@ class ScheduleController extends Controller
     return view(template() . 'user.schedule.create', compact('title','data'));
    }
 
-   public function storeSchedule(Request $request)
+    public function storeSchedule(Request $request)
     {
         try {
             // Validate the request
@@ -35,11 +36,11 @@ class ScheduleController extends Controller
                 'type' => 'required|string',
             ]);
 
-            // Use Cache to retrieve category to reduce DB queries
-            $category = GameCategory::select('name', 'id','image')->where('id', $validatedData['category'])->first();
+            // Retrieve category
+            $category = GameCategory::select('name', 'id', 'image')->where('id', $validatedData['category'])->first();
 
             if (!$category) {
-                return redirect()->back()->with('error','Invalid category selected.');
+                return redirect()->back()->with('error', 'Invalid category selected.');
             }
 
             // Generate tournament name
@@ -49,16 +50,34 @@ class ScheduleController extends Controller
             DB::beginTransaction();
 
             // Insert schedule data
-            GameSchedule::create([
-                // 'tid' => 1,
+            $schedule = GameSchedule::create([
                 'category_id' => $category->id,
                 'image' => $category->image,
                 'name' => $scheduleName,
                 'user_id' => Auth::id(),
                 'teams' => $validatedData['team'],
                 'type' => $validatedData['type'],
-                'status'=>1
+                'status' => 1
             ]);
+
+            // Insert teams
+            $teams = [];
+            for ($team = 1; $team <= $validatedData['team']; $team++) {
+                $teams[] = GameTeam::create([
+                    'schedule_id' => $schedule->id,
+                    'name' => "Team {$team}",
+                    'team_number' => $team,
+                ]);
+            }
+
+            // Generate Matches Based on Tournament Type
+            if ($validatedData['type'] === 'league-round-robin') {
+                $this->generateRoundRobin($schedule->id, $teams);
+            } elseif ($validatedData['type'] === 'knockout-tournament') {
+                $this->generateKnockout($schedule->id, $teams);
+            } elseif ($validatedData['type'] === 'league-cum-knockout') {
+                $this->generateLeagueCumKnockout($schedule->id, $teams);
+            }
 
             // Commit Transaction
             DB::commit();
@@ -71,6 +90,152 @@ class ScheduleController extends Controller
         }
     }
 
+    private function generateRoundRobin($scheduleId, $teams)
+    {
+        $numTeams = count($teams);
+        
+        // Ensure an even number of teams
+        if ($numTeams % 2 != 0) {
+            $teams[] = null; // Placeholder for a "bye"
+            $numTeams++;
+        }
+
+        $rounds = $numTeams - 1;
+        $halfSize = $numTeams / 2;
+        $matches = [];
+
+        // Separate first team (fixed) and rotating teams
+        $fixedTeam = array_shift($teams);
+        $rotatingTeams = $teams;
+
+        for ($round = 0; $round < $rounds; $round++) {
+            for ($i = 0; $i < $halfSize; $i++) {
+                $team1 = ($i == 0) ? $fixedTeam : $rotatingTeams[$i - 1];
+                $team2 = $rotatingTeams[$numTeams - 2 - $i];
+
+                if ($team1 && $team2) {
+                    $matches[] = [
+                        'team1' => $team1->id,
+                        'team2' => $team2->id,
+                        'round' => $round + 1,
+                    ];
+                }
+            }
+
+            // Rotate teams clockwise except the first fixed one
+            array_unshift($rotatingTeams, array_pop($rotatingTeams));
+        }
+
+        // Store matches in DB
+        $this->storeGeneratedMatches($scheduleId, $matches);
+    }
+
+    private function generateKnockout($scheduleId, $teams)
+    {
+        shuffle($teams);
+        $matches = [];
+        $round = 1;
+
+        while (count($teams) > 1) {
+            $nextRound = [];
+            for ($i = 0; $i < count($teams); $i += 2) {
+                if (isset($teams[$i + 1])) {
+                    $matches[] = [
+                        'team1' => $teams[$i]->id,
+                        'team2' => $teams[$i + 1]->id,
+                        'round' => $round,
+                    ];
+                    $nextRound[] = $teams[$i]; // Placeholder winner (update this later)
+                } else {
+                    $nextRound[] = $teams[$i]; // Bye for odd team
+                }
+            }
+            $teams = $nextRound;
+            $round++;
+        }
+
+        // Store matches in DB
+        $this->storeGeneratedMatches($scheduleId, $matches);
+    }
+
+    private function generateLeagueCumKnockout($scheduleId, $teams)
+    {
+        // Step 1: Generate Round-Robin Matches
+        $this->generateRoundRobin($scheduleId, $teams);
+
+        // Step 2: Retrieve Match Results and Rank Teams
+        $rankedTeams = $this->rankTeams($scheduleId);
+
+        // Step 3: Take Top 4 (or adjust as needed)
+        $numTopTeams = min(4, count($rankedTeams)); 
+        $topTeams = array_slice($rankedTeams, 0, $numTopTeams);
+
+        // Step 4: Generate Knockout Matches
+        $this->generateKnockout($scheduleId, $topTeams);
+    }
+
+    private function storeGeneratedMatches($scheduleId, $matches)
+    {
+        foreach ($matches as $match) {
+            GameMatch::create([
+                'schedule_id' => $scheduleId,
+                'team1_id' => $match['team1'],
+                'team2_id' => $match['team2'],
+                'round' => $match['round'] ?? 1,
+                'match_status' => 'pending',
+            ]);
+        }
+    }
+
+    private function rankTeams($scheduleId)
+    {
+        $teams = GameTeam::where('schedule_id', $scheduleId)->get();
+
+        $rankings = [];
+
+        foreach ($teams as $team) {
+            $matches = GameMatch::where('schedule_id', $scheduleId)
+                ->where(function ($query) use ($team) {
+                    $query->where('team1_id', $team->id)
+                        ->orWhere('team2_id', $team->id);
+                })->get();
+
+            $points = 0;
+            $goalDifference = 0;
+
+            foreach ($matches as $match) {
+                if ($match->winner_id == $team->id) {
+                    $points += 3; // Win
+                } elseif ($match->winner_id === null && $match->team1_score === $match->team2_score) {
+                    $points += 1; // Draw
+                }
+
+                // Calculate goal difference
+                if ($match->team1_id == $team->id) {
+                    $goalDifference += ($match->team1_score - $match->team2_score);
+                } else {
+                    $goalDifference += ($match->team2_score - $match->team1_score);
+                }
+            }
+
+            $rankings[] = [
+                'team' => $team,
+                'points' => $points,
+                'goal_difference' => $goalDifference
+            ];
+        }
+
+        // Sort teams: First by points, then by goal difference
+        usort($rankings, function ($a, $b) {
+            if ($a['points'] == $b['points']) {
+                return $b['goal_difference'] <=> $a['goal_difference'];
+            }
+            return $b['points'] <=> $a['points'];
+        });
+
+        return array_column($rankings, 'team'); // Return sorted teams
+    }
+
     public function Registrations(){
         $title = "Registrations";
         return view(template() . 'user.registrations.index', compact('title'));
@@ -79,12 +244,10 @@ class ScheduleController extends Controller
     public function editSchedule(Request $request)
     {
         $title = "Edit Schedule";
+        $urlParams = decryptUrlParam($request->eq);
+        $scheduleId = $urlParams['schedule_id'] ?? null;
 
         try {
-            // Attempt to decrypt and validate member ID
-            $urlParams = decryptUrlParam($request->eq);
-            $scheduleId = $urlParams['schedule_id'] ?? null;
-
             if (!$scheduleId) {
                 return redirect()->back()->with('error', 'Invalid schedule');
             }
@@ -92,16 +255,72 @@ class ScheduleController extends Controller
             $userId = Auth::id();
 
             // Fetch the schedule
-            $data['schedule'] = GameSchedule::with('gameCategory')
+            $data['schedule'] = GameSchedule::with('gameCategory','gameTeams','gameMatch','gameMatch.winner')
                 ->where('user_id', $userId)
-                ->whereIn('status', [1,0])
+                ->where('id', $scheduleId)
+                ->whereIn('status', [1, 0])
                 ->first();
 
+            if (!$data['schedule']) {
+                return redirect()->back()->with('error', 'Schedule not found');
+            }
+
+            // dd($data);
             return view(template() . 'user.schedule.edit', compact('title', 'data'));
 
         } catch (\Exception $e) {
-            dd($e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while processing your request.');
+        }
+    }
+
+    public function updateMatch(Request $request)
+    {
+        try {
+            // Validate the incoming request
+            $validatedData = $request->validate([
+                'match_id' => 'required|exists:game_match,id',
+                'team1_name' => 'required|string|max:255',
+                'team2_name' => 'required|string|max:255',
+                'team1_score' => 'required|integer|min:0',
+                'team2_score' => 'required|integer|min:0',
+            ]);
+
+            // Find the match
+            $match = GameMatch::findOrFail($validatedData['match_id']);
+
+            // Update the team names in the game_teams table
+            $team1 = GameTeam::find($match->team1_id);
+            $team2 = GameTeam::find($match->team2_id);
+
+            if ($team1) {
+                $team1->name = $validatedData['team1_name'];
+                $team1->save();
+            }
+
+            if ($team2) {
+                $team2->name = $validatedData['team2_name'];
+                $team2->save();
+            }
+
+            // Update the match scores
+            $match->team1_score = $validatedData['team1_score'];
+            $match->team2_score = $validatedData['team2_score'];
+
+            // Determine winner
+            if ($match->team1_score > $match->team2_score) {
+                $match->winner_id = $match->team1_id;
+            } elseif ($match->team1_score < $match->team2_score) {
+                $match->winner_id = $match->team2_id;
+            } else {
+                $match->winner_id = null; // Draw
+            }
+
+            // Save match updates
+            $match->save();
+
+            return redirect()->back()->with('success', 'Match updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Something went wrong: ' . $e->getMessage());
         }
     }
 

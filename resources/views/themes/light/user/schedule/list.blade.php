@@ -36,13 +36,13 @@
                                                     </span>
                                                 </p>
                                             </div>                
-                                                <div class="schedule-details">
-                                                    <div class="d-flex justify-content-around">
-                                                        <p class="mb-0 text-white"><strong>@lang('Category'):</strong> @lang($schedule->gameCategory->name ?? 'N/A')</p>
-                                                        <p class="mb-0 text-white"><strong>@lang('Number of Teams'):</strong> {{ $schedule->teams }}</p>
-                                                    </div>
-                                                    <p class="mt-1mb-0 text-capitalize text-white"><strong>@lang('Type'):</strong> {{ str_replace('-', ' ', $schedule->type) }}</p>
+                                            <div class="schedule-details">
+                                                <div class="d-flex justify-content-around">
+                                                    <p class="mb-0 text-white"><strong>@lang('Category'):</strong> @lang($schedule->gameCategory->name ?? 'N/A')</p>
+                                                    <p class="mb-0 text-white"><strong>@lang('Number of Teams'):</strong> {{ $schedule->teams }}</p>
                                                 </div>
+                                                <p class="mt-1mb-0 text-capitalize text-white"><strong>@lang('Type'):</strong> {{ str_replace('-', ' ', $schedule->type) }}</p>
+                                            </div>
                                         </div>
                                     </a>
                                 </div>
