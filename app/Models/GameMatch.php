@@ -9,7 +9,7 @@ class GameMatch extends Model
 {
     use HasFactory;
     protected $table='game_match';
-    protected $fillable = ['schedule_id','team1_id','team2_id','winner_id','team1_score','team2_score','status','created_at','updated_at','round'];
+    protected $fillable = ['schedule_id','team1_id','team2_id','winner_id','team1_score','team2_score','status','created_at','updated_at','round','team1_placeholder','team2_placeholder','match_number','previous_match1_id','previous_match2_id'];
 
     public function team1()
     {

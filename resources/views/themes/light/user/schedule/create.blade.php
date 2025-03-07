@@ -28,7 +28,7 @@
                                 <label for="team_number">Number of teams <span class="text-danger">*</span></label>
                                 <div class="input-group input-box mt-1">
                                     <select class="form-control" name="team" id="team_number" required>
-                                        @for ($i = 2; $i <= 1000; $i++)
+                                        @for ($i = 2; $i <= 20; $i++)
                                             <option value="{{ $i }}">{{ $i }}</option>
                                         @endfor
                                     </select>

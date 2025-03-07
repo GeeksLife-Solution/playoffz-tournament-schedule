@@ -161,18 +161,63 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($data['schedule']->gameMatch as $match)
+                                                {{-- @foreach($data['schedule']->gameMatch as $match)
                                                     <tr>
                                                         <td>Match {{$loop->iteration}}</td>
-                                                        <td>{{ $match->team1->name ?? 'TBD' }}</td>
-                                                        <td>{{ $match->team2->name ?? 'TBD' }}</td>
+                                                        <td>{{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}</td>
+                                                        <td>{{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}</td>
                                                         <td>{{ $match->team1_score }} - {{ $match->team2_score }}</td>
                                                         <td>
                                                             <button class="btn btn-sm btn-warning"
-                                                                onclick="openEditModal({{ $match->id }}, '{{ $match->team1->name }}', '{{ $match->team2->name }}', {{ $match->team1_score }}, {{ $match->team2_score }})">Edit</button>
+                                                            onclick="openEditModal(
+                                                                {{ $match->id }},
+                                                                '{{ isset($match->team1) ? $match->team1->name : '' }}',
+                                                                '{{ isset($match->team2) ? $match->team2->name : '' }}',
+                                                                {{ $match->team1_score ?? 0 }},
+                                                                {{ $match->team2_score ?? 0 }}
+                                                            )">
+                                                            Edit
+                                                        </button>                                                        
                                                         </td>
                                                     </tr>
-                                                @endforeach
+                                                @endforeach --}}
+                                                @foreach($data['schedule']->gameMatch as $match)
+                                                @php
+                                                    // Check if the match has a winner
+                                                    $hasWinner = !is_null($match->winner_id);
+                                            
+                                                    // Check if the winner has progressed to the next round
+                                                    $winnerMoved = \App\Models\GameMatch::where(function($query) use ($match) {
+                                                                        $query->where('team1_id', $match->winner_id)
+                                                                              ->orWhere('team2_id', $match->winner_id);
+                                                                    })->exists();
+                                            
+                                                    // Lock the match only if it has a winner AND that winner has moved to the next round
+                                                    $isEditable = !($hasWinner && $winnerMoved);
+                                                @endphp
+                                                <tr>
+                                                    <td>Match {{$loop->iteration}}</td>
+                                                    <td>{{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}</td>
+                                                    <td>{{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}</td>
+                                                    <td>{{ $match->team1_score }} - {{ $match->team2_score }}</td>
+                                                    <td>
+                                                        @if ($isEditable)
+                                                            <button class="btn btn-sm btn-warning"
+                                                                onclick="openEditModal(
+                                                                    {{ $match->id }},
+                                                                    '{{ isset($match->team1) ? $match->team1->name : '' }}',
+                                                                    '{{ isset($match->team2) ? $match->team2->name : '' }}',
+                                                                    {{ $match->team1_score ?? 0 }},
+                                                                    {{ $match->team2_score ?? 0 }}
+                                                                )">
+                                                                Edit
+                                                            </button>
+                                                        @else
+                                                            <button class="btn btn-sm btn-secondary" disabled>Locked</button>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
                                             </tbody>
                                         </table>
                                     </div>
@@ -208,12 +253,12 @@
                                                     <div class="match {{$loop->index == 0 ? 'matchFirst' : ''}}">
                                                         <div
                                                             class="team {{ $match->team1_score > $match->team2_score ? 'winner' : '' }}">
-                                                            {{ $match->team1->name ?? 'TBD' }}
+                                                            {{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}
                                                             <span class="score">{{ $match->team1_score }}</span>
                                                         </div>
                                                         <div
                                                             class="team {{ $match->team2_score > $match->team1_score ? 'winner' : '' }}">
-                                                            {{ $match->team2->name ?? 'TBD' }}
+                                                            {{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}
                                                             <span class="score">{{ $match->team2_score }}</span>
                                                         </div>
                                                     </div>
@@ -221,20 +266,15 @@
                                             </div>
                                         @endforeach
 
-                                        {{-- Show Champion at the end --}}
                                         @if($champion)
                                             <div class="final">
-                                                <div class="winner-box pb-4">
-                                                    <h4 class="mb-0">🏆 <br> {{ $champion->name }}</h4>
-                                                    <p class="score text-white mb-0">Final Score: {{ $finalMatch->team1_score }}
-                                                        - {{ $finalMatch->team2_score }}</p>
+                                                <div class="winner-box">
+                                                    <h4 class="mb-0">🏆 <br> Winner {{ $champion->name }}</h4>
                                                 </div>
                                             </div>
                                         @endif
                                     </div>
-
                                 </div>
-
                             </div>
                         </div>
                     </div>
