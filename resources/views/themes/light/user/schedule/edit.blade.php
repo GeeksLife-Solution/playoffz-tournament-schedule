@@ -276,6 +276,96 @@
                                     </div>
                                 </div>
                             </div>
+
+
+                           {{-- MATCH SCORING --}}
+                            <div class="table-responsive mt-4">
+                                <div class="card-header bg-primary text-white w-100">
+                                    <h5 class="mb-0">Match Score</h5>
+                                </div>
+                                <table class="table table-bordered text-center">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th style="white-space: nowrap;">Match No.</th>
+                                            <th style="white-space: nowrap;">Round</th>
+                                            <th style="white-space: nowrap;">Team A</th>
+                                            <th style="white-space: nowrap;">Team A Score</th>
+                                            <th style="white-space: nowrap;">Team B</th>
+                                            <th style="white-space: nowrap;">Team B Score</th>
+                                            <th style="white-space: nowrap;">Winner</th>
+                                            <th style="white-space: nowrap;">Points For (A)</th>
+                                            <th style="white-space: nowrap;">Points For (B)</th>
+                                            <th style="white-space: nowrap;">Points Difference</th>
+                                            <th style="white-space: nowrap;">Match Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($data['schedule']->gameMatch as $match)
+    @php
+        // Ensure team1 and team2 exist before accessing their names
+        $team1Name = $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE');
+        $team2Name = $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE');
+
+        // Check if scores are available
+        $team1Score = isset($match->team1_score) ? $match->team1_score : null;
+        $team2Score = isset($match->team2_score) ? $match->team2_score : null;
+
+        // Determine the winner using winner_id from the database
+        if (!is_null($team1Score) && !is_null($team2Score)) {
+            if ($team1Score > $team2Score) {
+                $winner = $team1Name;
+            } elseif ($team2Score > $team1Score) {
+                $winner = $team2Name;
+            } else {
+                $winner = 'Draw';
+            }
+        } else {
+            $winner = 'TBD'; // Ensure "TBD" is shown when no scores are entered
+        }
+
+
+        // Calculate points difference safely
+        $pointsDifference = ($winner !== 'Draw' && $winner !== 'TBD') ? abs($team1Score - $team2Score) : 'N/A';
+
+
+        // Highlight the winner only if it's not a draw or TBD
+        $highlight = ($match->round === 'Final' && $winner !== 'Draw' && $winner !== 'TBD') ? "<b>{$winner} 🏆</b>" : $winner;
+    @endphp
+
+    <tr>
+        <td>{{ $loop->iteration }}</td>
+        <td>Round {{ $match->round }}</td>
+        <td>{{ $team1Name }}</td>                                                
+        <td>{{ $team1Score ?? '-' }}</td>
+        <td>{{ $team2Name }}</td>
+        <td>{{ $team2Score ?? '-' }}</td>
+        <td>{!! $highlight !!}</td>
+        <td>{{ $team1Score ?? '-' }}</td>
+        <td>{{ $team2Score ?? '-' }}</td>
+                   
+        <td>
+            @if ($winner !== 'Draw' && $winner !== 'TBD')
+                {{ "+$pointsDifference for $winner" }}
+            @else
+                N/A
+            @endif
+        </td>
+        
+        <td>
+            @if (!is_null($match->winner_id) && !is_null($team1Score) && !is_null($team2Score))
+                Completed
+            @else
+                Pending
+            @endif
+        </td>
+        
+    </tr>
+@endforeach
+
+                                    </tbody>
+                                </table>
+                            </div>
+
                         </div>
                     </div>
                 </div>

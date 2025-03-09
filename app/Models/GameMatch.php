@@ -25,6 +25,17 @@ class GameMatch extends Model
     {
         return $this->belongsTo(GameTeam::class, 'winner_id', 'id');
     }    
+
+    public function previousMatch1()
+    {
+        return $this->belongsTo(GameMatch::class, 'team1_id', 'winner_id');
+    }
+
+    public function previousMatch2()
+    {
+        return $this->belongsTo(GameMatch::class, 'team2_id', 'winner_id');
+    }
+
     
 
     // public function gameCategory()
