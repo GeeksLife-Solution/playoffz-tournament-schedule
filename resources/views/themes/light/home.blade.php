@@ -44,12 +44,252 @@
                 @include($theme.'partials.home.content')
             @endif
 
+           {{-- EACH CATGEORY WISE - SCOREBOARD FOR A PARTICULAR CATEGORY --}}
+            @isset($selectedCategory)
+                @if($selectedCategory)
+                    <h3 class="text-center mb-2 mt-2">{{ $selectedCategory->name }} - Score List</h3>
+                    @foreach($selectedCategory->gameSchedule as $schedule)
+                        <div class="schedule-section mb-4">
+                            <h4 class="schedule-title bg-dark text-white p-2">
+                                {{ $schedule->name }}
+                            </h4>
+
+                            @php
+                                $matches = $schedule->gameMatch;
+                                $finalMatch = $matches->whereNotNull('winner_id')->last(); // Get the last match with a winner
+                                $initialMatch = $finalMatch ?? $matches->first(); // Show final match if available, else first match
+                            @endphp
+
+                            <table class="table table-dark table-bordered text-center match-table mb-0" id="table-{{ $schedule->id }}">
+                                <thead>
+                                    <tr>
+                                        <th>Match No.</th>
+                                        <th>Round</th>
+                                        <th>Team A</th>
+                                        <th>Score A</th>
+                                        <th>Team B</th>
+                                        <th>Score B</th>
+                                        <th>Winner</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if ($initialMatch)
+                                        @php
+                                            $teamA = $initialMatch->team1 ? $initialMatch->team1->name : ($initialMatch->team1_placeholder ?? 'BYE');
+                                            $teamB = $initialMatch->team2 ? $initialMatch->team2->name : ($initialMatch->team2_placeholder ?? 'BYE');
+                                            $scoreA = $initialMatch->team1_score ?? '-';
+                                            $scoreB = $initialMatch->team2_score ?? '-';
+
+                                            if (is_numeric($scoreA) && is_numeric($scoreB)) {
+                                                if ($scoreA > $scoreB) {
+                                                    $winner = $teamA;
+                                                } elseif ($scoreB > $scoreA) {
+                                                    $winner = $teamB;
+                                                } else {
+                                                    $winner = 'Draw';
+                                                }
+                                            } else {
+                                                $winner = 'TBD';
+                                            }
+
+                                            $status = (!is_null($initialMatch->winner_id) && is_numeric($scoreA) && is_numeric($scoreB)) ? 'Completed' : 'Pending';
+                                        @endphp
+
+                                        <tr>
+                                            <td>{{ $loop->index+1 }}</td>
+                                            <td>{{ $initialMatch->round }}</td>
+                                            <td>{{ $teamA }}</td>
+                                            <td>{{ $scoreA }}</td>
+                                            <td>{{ $teamB }}</td>
+                                            <td>{{ $scoreB }}</td>
+                                            <td>{!! $winner !!}</td>
+                                            <td>{{ $status }}</td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+
+                            {{-- View More Button --}}
+                            @if ($matches->count() > 1)
+                                <button class="btn btn-primary view-more-btn w-100 rounded-0" data-schedule="{{ $schedule->id }}" data-expanded="false">View More</button>
+                            @endif
+                        </div>
+                    @endforeach
+                @endif
+            @endisset
+            {{-- END SCORE BOARD --}}
+
+            {{-- ALL SPORTS WISE --}}
+            @if(isset($gameCategories) && $showall == true)
+                @foreach($gameCategories as $category)
+                    @php
+                        // Filter schedules that have at least one match
+                        $validSchedules = $category->gameSchedule->filter(function($schedule) {
+                            return $schedule->gameMatch->isNotEmpty();
+                        });
+                    @endphp
+
+                    @if ($validSchedules->isNotEmpty()) 
+                        <div class="category-section mb-5">
+                            <h3 class="text-center bg-success text-white p-3">{{ $category->name }} - Score List</h3>
+
+                            @foreach($validSchedules as $schedule)
+                                <div class="schedule-section mb-4">
+                                    <h4 class="schedule-title bg-dark text-white p-2">
+                                        {{ $schedule->name }}
+                                    </h4>
+
+                                    @php
+                                        $matches = $schedule->gameMatch;
+                                        $firstMatch = $matches->first(); // Get first match
+                                    @endphp
+
+                                    <table class="table table-dark table-bordered text-center match-table mb-0" id="table-{{ $schedule->id }}">
+                                        <thead>
+                                            <tr>
+                                                <th>Match No.</th>
+                                                <th>Round</th>
+                                                <th>Team A</th>
+                                                <th>Score A</th>
+                                                <th>Team B</th>
+                                                <th>Score B</th>
+                                                <th>Winner</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if ($firstMatch)
+                                                @php
+                                                    $teamA = $firstMatch->team1 ? $firstMatch->team1->name : ($firstMatch->team1_placeholder ?? 'BYE');
+                                                    $teamB = $firstMatch->team2 ? $firstMatch->team2->name : ($firstMatch->team2_placeholder ?? 'BYE');
+                                                    $scoreA = $firstMatch->team1_score ?? '-';
+                                                    $scoreB = $firstMatch->team2_score ?? '-';
+
+                                                    if (is_numeric($scoreA) && is_numeric($scoreB)) {
+                                                        $winner = $scoreA > $scoreB ? $teamA : ($scoreB > $scoreA ? $teamB : 'Draw');
+                                                    } else {
+                                                        $winner = 'TBD';
+                                                    }
+
+                                                    $status = (!is_null($firstMatch->winner_id) && is_numeric($scoreA) && is_numeric($scoreB)) ? 'Completed' : 'Pending';
+                                                @endphp
+
+                                                <tr>
+                                                    <td>{{ $firstMatch->id }}</td>
+                                                    <td>{{ $firstMatch->round }}</td>
+                                                    <td>{{ $teamA }}</td>
+                                                    <td>{{ $scoreA }}</td>
+                                                    <td>{{ $teamB }}</td>
+                                                    <td>{{ $scoreB }}</td>
+                                                    <td>{!! $winner !!}</td>
+                                                    <td>{{ $status }}</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+
+                                    {{-- View More Button --}}
+                                    @if ($matches->count() > 1)
+                                        <button class="btn btn-primary view-more-btn w-100 rounded-0" data-schedule="{{ $schedule->id }}" data-expanded="false">View More</button>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                @endforeach
+            @endif
+            {{-- ALL SPORTS WISE END --}}
+
         </div>
 
     </div>
 @endsection
 
 @push('script')
+{{-- JavaScript for Toggling Full Table Visibility --}}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".view-more-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let scheduleId = this.getAttribute("data-schedule");
+                let table = document.querySelector("#table-" + scheduleId);
+                let expanded = this.getAttribute("data-expanded") === "true";
+
+                if (!expanded) {
+                    this.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Loading...`; // Show loader
+                    this.disabled = true;
+
+                    fetch(`/get-full-schedule/${scheduleId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let newTableContent = `
+                                <thead>
+                                    <tr>
+                                        <th>Match No.</th>
+                                        <th>Round</th>
+                                        <th>Team A</th>
+                                        <th>Score A</th>
+                                        <th>Team B</th>
+                                        <th>Score B</th>
+                                        <th>Winner</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                            `;
+
+                            data.forEach((match, index) => {
+                                let winner = "TBD";
+                                if (!isNaN(match.team1_score) && !isNaN(match.team2_score)) {
+                                    if (match.team1_score > match.team2_score) {
+                                        winner = match.team1_name;
+                                    } else if (match.team2_score > match.team1_score) {
+                                        winner = match.team2_name;
+                                    } else {
+                                        winner = "Draw";
+                                    }
+                                }
+
+                                let status = match.winner_id ? "Completed" : "Pending";
+
+                                newTableContent += `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${match.round}</td>
+                                        <td>${match.team1_name ?? 'BYE'}</td>
+                                        <td>${match.team1_score ?? '-'}</td>
+                                        <td>${match.team2_name ?? 'BYE'}</td>
+                                        <td>${match.team2_score ?? '-'}</td>
+                                        <td>${winner}</td>
+                                        <td>${status}</td>
+                                    </tr>
+                                `;
+                            });
+
+                            newTableContent += "</tbody>";
+
+                            table.innerHTML = newTableContent;
+                            this.innerHTML = "View Less";
+                            this.setAttribute("data-expanded", "true");
+                        })
+                        .catch(error => {
+                            console.error("Error loading data:", error);
+                            this.innerHTML = "View More";
+                        })
+                        .finally(() => {
+                            this.disabled = false;
+                        });
+                } else {
+                    let firstRowContent = table.querySelector("tbody").innerHTML.split("</tr>")[0] + "</tr>";
+                    table.innerHTML = `<thead>${table.querySelector("thead").innerHTML}</thead><tbody>${firstRowContent}</tbody>`;
+                    this.innerHTML = "View More";
+                    this.setAttribute("data-expanded", "false");
+                }
+            });
+        });
+    });
+</script>
 
     @php
         $segments = request()->segments();

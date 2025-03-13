@@ -63,10 +63,69 @@ class FrontendController extends Controller
         }
     }
 
-    public function category($slug = null, $id)
+    // public function category($slug = null, $id = null)
+    // {
+    //     // Fetch all active game categories (always needed for listing)
+    //     $data['gameCategories'] = GameCategory::withCount('gameActiveMatch')
+    //         ->where('status', 1)
+    //         ->orderBy('game_active_match_count', 'desc')
+    //         ->get();
+
+    //     // Fetch the selected category with only the latest 5 schedules
+    //     if ($id) {
+    //         $data['selectedCategory'] = GameCategory::where('id', $id)
+    //             ->with(['gameSchedule' => function ($query) {
+    //                 $query->latest()->limit(5); // Fetch latest 5 schedules
+    //             }])
+    //             ->first();
+    //     } else {
+    //         $data['selectedCategory'] = null;
+    //     }
+
+    //     return view(template() . 'home', $data);
+    // } 
+
+    public function category($slug = null, $id = null)
     {
-        $data['gameCategories'] = GameCategory::with(['activeTournament'])->withCount('gameActiveMatch')->whereStatus(1)->orderBy('game_active_match_count', 'desc')->get();
-        return view(template() . 'home', $data);
+        // Fetch all active game categories with active match count
+        $gameCategories = GameCategory::withCount('gameActiveMatch')
+            ->where('status', 1)
+            ->orderByDesc('game_active_match_count')
+            ->get();
+
+        // Fetch the selected category along with latest 5 schedules and their matches
+        $selectedCategory = $id
+            ? GameCategory::with(['gameSchedule' => function ($query) {
+                    $query->latest()->limit(5)->with(['gameMatch.team1', 'gameMatch.team2']);
+                }])
+                ->find($id)
+            : null;
+
+        $showall = false;
+
+        return view(template() . 'home', compact('gameCategories','showall', 'selectedCategory'));
+    }
+
+    public function getFullSchedule($scheduleId)
+    {
+        // Fetch all matches for the given schedule in a single query with relationships
+        $matches = GameMatch::where('schedule_id', $scheduleId)
+            ->with(['team1', 'team2'])
+            ->orderBy('id')
+            ->get()
+            ->map(function ($match) {
+                return [
+                    'id' => $match->id,
+                    'round' => $match->round,
+                    'team1_name' => $match->team1->name ?? ($match->team1_placeholder ?? 'BYE'),
+                    'team2_name' => $match->team2->name ?? ($match->team2_placeholder ?? 'BYE'),
+                    'team1_score' => $match->team1_score ?? '-',
+                    'team2_score' => $match->team2_score ?? '-',
+                    'winner_id' => $match->winner_id,
+                ];
+            });
+
+        return response()->json($matches);
     }
 
 

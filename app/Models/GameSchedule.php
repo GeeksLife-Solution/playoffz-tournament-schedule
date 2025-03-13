@@ -9,7 +9,7 @@ class GameSchedule extends Model
 {
     use HasFactory;
     protected $table='game_schedule';
-    protected $fillable = ['user_id','name','category_id','image','teams','type','created_at','updated_at','status'];
+    protected $fillable = ['user_id','name','category_id','image','teams','type','created_at','updated_at','status','u_group','court'];
 
     public function gameCategory()
     {

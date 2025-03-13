@@ -130,6 +130,11 @@
     }
 </style>
 @section('content')
+    @php 
+        $matchType = $data['schedule']->gameCategory->type ?? "Match";
+        $matchParticipant = $data['schedule']->gameCategory->participant ?? "Team";
+        $matchArea = $data['schedule']->gameCategory->area ?? "Court";
+    @endphp
     <div class="row justify-content-center ">
         <div class="col-md-8">
             <div class="card">
@@ -147,40 +152,20 @@
                             @if($data['schedule']->gameMatch->count() > 0)
                                 <div class="card mt-3">
                                     <div class="card-header bg-primary text-white">
-                                        <h5 class="mb-0">Match Schedule</h5>
+                                        <h5 class="mb-0">{{$matchType}} Schedule</h5>
                                     </div>
                                     <div class="card-body">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Match</th>
-                                                    <th>Team A</th>
-                                                    <th>Team B</th>
+                                                    <th>{{$matchType}}</th>
+                                                    <th>{{$matchParticipant}} A</th>
+                                                    <th>{{$matchParticipant}} B</th>
                                                     <th>Score</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {{-- @foreach($data['schedule']->gameMatch as $match)
-                                                    <tr>
-                                                        <td>Match {{$loop->iteration}}</td>
-                                                        <td>{{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}</td>
-                                                        <td>{{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}</td>
-                                                        <td>{{ $match->team1_score }} - {{ $match->team2_score }}</td>
-                                                        <td>
-                                                            <button class="btn btn-sm btn-warning"
-                                                            onclick="openEditModal(
-                                                                {{ $match->id }},
-                                                                '{{ isset($match->team1) ? $match->team1->name : '' }}',
-                                                                '{{ isset($match->team2) ? $match->team2->name : '' }}',
-                                                                {{ $match->team1_score ?? 0 }},
-                                                                {{ $match->team2_score ?? 0 }}
-                                                            )">
-                                                            Edit
-                                                        </button>                                                        
-                                                        </td>
-                                                    </tr>
-                                                @endforeach --}}
                                                 @foreach($data['schedule']->gameMatch as $match)
                                                 @php
                                                     // Check if the match has a winner
@@ -196,7 +181,7 @@
                                                     $isEditable = !($hasWinner && $winnerMoved);
                                                 @endphp
                                                 <tr>
-                                                    <td>Match {{$loop->iteration}}</td>
+                                                    <td>{{$matchType}} {{$loop->iteration}}</td>
                                                     <td>{{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}</td>
                                                     <td>{{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}</td>
                                                     <td>{{ $match->team1_score }} - {{ $match->team2_score }}</td>
@@ -223,7 +208,7 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="alert alert-warning">No matches scheduled yet.</div>
+                                <div class="alert alert-warning">No {{$matchType}}s scheduled yet.</div>
                             @endif  
                             <div class="tournament-bracket">
                                 @php
@@ -243,7 +228,7 @@
 
                                 <div>
                                     <div class="card-header bg-primary text-white">
-                                        <h5 class="mb-0">Match Fixtures</h5>
+                                        <h5 class="mb-0">{{$matchType}} Fixtures</h5>
                                     </div>
                                     <div class="tournament-bracket">
                                         @foreach($matchesByRound as $round => $matches)
@@ -281,22 +266,22 @@
                            {{-- MATCH SCORING --}}
                             <div class="table-responsive mt-4">
                                 <div class="card-header bg-primary text-white w-100">
-                                    <h5 class="mb-0">Match Score</h5>
+                                    <h5 class="mb-0">{{$matchType}} Score</h5>
                                 </div>
                                 <table class="table table-bordered text-center">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th style="white-space: nowrap;">Match No.</th>
+                                            <th style="white-space: nowrap;">{{$matchType}} No.</th>
                                             <th style="white-space: nowrap;">Round</th>
-                                            <th style="white-space: nowrap;">Team A</th>
-                                            <th style="white-space: nowrap;">Team A Score</th>
-                                            <th style="white-space: nowrap;">Team B</th>
-                                            <th style="white-space: nowrap;">Team B Score</th>
+                                            <th style="white-space: nowrap;">{{$matchParticipant}} A</th>
+                                            <th style="white-space: nowrap;">{{$matchParticipant}} A Score</th>
+                                            <th style="white-space: nowrap;">{{$matchParticipant}} B</th>
+                                            <th style="white-space: nowrap;">{{$matchParticipant}} B Score</th>
                                             <th style="white-space: nowrap;">Winner</th>
                                             <th style="white-space: nowrap;">Points For (A)</th>
                                             <th style="white-space: nowrap;">Points For (B)</th>
                                             <th style="white-space: nowrap;">Points Difference</th>
-                                            <th style="white-space: nowrap;">Match Status</th>
+                                            <th style="white-space: nowrap;">{{$matchType}} Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -378,7 +363,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content p-0">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editMatchModalLabel">Edit Match</h5>
+                        <h5 class="modal-title" id="editMatchModalLabel">Edit {{$matchType}}</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -389,19 +374,19 @@
                             <div class="modal-body">
                                 <input type="hidden" name="match_id" id="match_id">
                                 <div class="form-group mb-2">
-                                    <label for="team1_name">Team A</label>
+                                    <label for="team1_name">{{$matchParticipant}} A</label>
                                     <input type="text" class="form-control" id="team1_name" name="team1_name" required>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="team2_name">Team B</label>
+                                    <label for="team2_name">{{$matchParticipant}} B</label>
                                     <input type="text" class="form-control" id="team2_name" name="team2_name" required>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="team1_score">Team A Score</label>
+                                    <label for="team1_score">{{$matchParticipant}} A Score</label>
                                     <input type="number" class="form-control" id="team1_score" name="team1_score" required>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="team2_score">Team B Score</label>
+                                    <label for="team2_score">{{$matchParticipant}} B Score</label>
                                     <input type="number" class="form-control" id="team2_score" name="team2_score" required>
                                 </div>
                             </div>

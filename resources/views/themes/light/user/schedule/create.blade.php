@@ -44,6 +44,18 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group mb-2">
+                                <label for="team_number">Court <span class="text-danger">*</span></label>
+                                <div class="input-group input-box mt-1">
+                                    <input type="number" name="court" class="form-control" placeholder="Enter number of court">
+                                </div>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="team_number">Group <span class="text-danger">*</span></label>
+                                <div class="input-group input-box mt-1">
+                                    <input type="number" name="group" class="form-control" placeholder="Enter number of group">
+                                </div>
+                            </div>
                             <div class="d-flex justify-content-end">
                                 <button class="btn btn-primary mt-2">Submit</button>
                             </div>

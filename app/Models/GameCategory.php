@@ -22,10 +22,10 @@ class GameCategory extends Model
     {
         return $this->hasMany(GameMatch::class,'category_id');
     }
-    public function gameActiveMatch()
-    {
-        return $this->hasMany(GameMatch::class,'id')->where('status',1);
-    }
+    // public function gameActiveMatch()
+    // {
+    //     return $this->hasMany(GameMatch::class,'id')->where('status',1);
+    // }
 
     public function activeTournament()
     {
@@ -38,5 +38,15 @@ class GameCategory extends Model
     public function activeMatch()
     {
         return $this->hasMany(GameMatch::class,'category_id')->where('status',1);
+    }
+
+    public function gameSchedule(){
+        return $this->hasMany(GameSchedule::class,'category_id')->where('status',1);
+    }
+
+    public function gameActiveMatch()
+    {
+        return $this->hasManyThrough(GameMatch::class, GameSchedule::class, 'category_id', 'schedule_id')
+            ->where('game_match.winner_id', '>',0);
     }
 }

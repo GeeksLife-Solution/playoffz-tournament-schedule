@@ -58,11 +58,28 @@ Route::get('/themeMode/{themeType?}', function ($themeType = 'true') {
     return $themeType;
 })->name('themeMode');
 
+// Route::get('/', function () {
+//     $data['gameCategories'] = GameCategory::with(['activeTournament'])->withCount('gameActiveMatch')
+//         ->whereStatus(1)->orderBy('game_active_match_count', 'desc')->get();
+//     return view(template() . 'home', $data);
+// })->name('home');
+
 Route::get('/', function () {
-    $data['gameCategories'] = GameCategory::with(['activeTournament'])->withCount('gameActiveMatch')
-        ->whereStatus(1)->orderBy('game_active_match_count', 'desc')->get();
+    $data['gameCategories'] = GameCategory::with([
+        'activeTournament',
+        'gameSchedule' => function ($query) {
+            $query->latest()->limit(5); // Fetch latest 5 schedules per category
+        },
+        'gameSchedule.gameMatch.team1', // Load Team A details
+        'gameSchedule.gameMatch.team2'  // Load Team B details
+    ])->withCount('gameActiveMatch')
+      ->whereStatus(1)
+      ->orderByDesc('game_active_match_count')
+      ->get();
+    $data['showall'] = true;
     return view(template() . 'home', $data);
 })->name('home');
+
 
 Route::get('clear', function () {
     Illuminate\Support\Facades\Artisan::call('optimize:clear');
@@ -234,6 +251,9 @@ Route::group(['middleware' => ['maintenanceMode']], function () use ($basicContr
     Route::get('/bet/allSports/{categoryId?}', [GameFetchController::class, 'index'])->name('allSports');
     Route::get('/bet/result', [FrontendController::class, 'betResult'])->name('betResult');
     Route::get('/category/{category_slug}/{category_id}', [FrontendController::class, 'category'])->name('category');
+
+    Route::get('/get-full-schedule/{scheduleId}', [FrontendController::class, 'getFullSchedule'])->name('getFullSchedule');
+
     Route::get('/tournament/{tournament_name}/{tournament_id}', [FrontendController::class, 'tournament'])->name('tournament');
     Route::get('/match/{match_name}/{match_id}', [FrontendController::class, 'match'])->name('match');
 
