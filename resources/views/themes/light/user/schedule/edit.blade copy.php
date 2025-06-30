@@ -1,57 +1,6 @@
 @extends($theme . 'layouts.user')
 @section('title', trans($title))
 <style>
-    /* .tournament-bracket {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.match {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-}
-
-.team {
-    width: 200px;
-    padding: 10px;
-    text-align: center;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    background-color: #f8f8f8;
-    font-weight: bold;
-    position: relative;
-}
-
-.team.winner {
-    border-color: gold;
-    background-color: rgba(255, 215, 0, 0.7);
-}
-
-.score {
-    float: right;
-    font-weight: bold;
-    color: #555;
-}
-
-.match::before {
-    content: "";
-    width: 2px;
-    height: 40px;
-    background-color: #ccc;
-    position: absolute;
-    left: 50%;
-    top: -30px;
-}
-
-.match:first-child::before {
-    display: none;
-} */
     .tournament-bracket {
         display: flex;
         /* flex-direction: column; */
@@ -121,6 +70,13 @@
         text-align: center;
         margin-top: 30px;
     }
+
+    .winner-box {
+        border: 3px solid gold;
+        padding: 15px;
+        background-color: rgba(255, 215, 0, 0.2);
+        border-radius: 10px;
+    }
 </style>
 <style>
     .tournament-bracket {
@@ -132,19 +88,18 @@
 .round {
     display: flex;
     flex-direction: column;
-    margin: 0 10px;
+    margin: 0 20px;
     position: relative;
 }
 
 .match {
-    margin: 0;
+    margin: 10px 0;
     position: relative;
 }
 
 .team {
-    padding: 5px 10px;
+    padding: 8px 12px;
     margin: 2px 0;
-    width: 180px;
     background: #f5f5f5;
     border-radius: 4px;
     position: relative;
@@ -181,15 +136,15 @@
 
 /* Vertical connector for next round */
 .match::after {
-        content: '';
+    content: '';
     position: absolute;
-    top: 29px;
+    top: 32px;
     bottom: 0;
     right: -10px;
     width: 2px;
     background: #999;
     z-index: 0;
-    height: 42%;
+    height: 43%;
 }
 
 /* Hide connectors for the last round */
@@ -209,10 +164,6 @@
     background: #e8f5e9;
     border-radius: 8px;
     text-align: center;
-    border: 3px solid gold;
-    padding: 15px;
-    background-color: rgba(255, 215, 0, 0.2);
-    border-radius: 10px;
 }
 </style>
 @section('content')
@@ -290,7 +241,7 @@
                             @else
                                 <div class="alert alert-warning">No {{$matchType}}s scheduled yet.</div>
                             @endif  
-                            <!-- <div class="tournament-bracket2"> -->
+                            <div class="tournament-bracket">
                                 @php
                                     // Group matches by round
                                     $matchesByRound = $data['schedule']->gameMatch->groupBy('round');
@@ -306,10 +257,40 @@
                                     }
                                 @endphp
 
-                                <div class="mt-4">
+                                <div>
                                     <div class="card-header bg-primary text-white">
                                         <h5 class="mb-0">{{$matchType}} Fixtures</h5>
                                     </div>
+                                    <!-- <div class="tournament-bracket">
+                                        @foreach($matchesByRound as $round => $matches)
+                                            <div class="round">
+                                                <div class="badge badge-rounded bg-success round-title">Round {{ $round }}</div>
+                                                @foreach($matches as $match)
+                                                    <div class="match {{$loop->index == 0 ? 'matchFirst' : ''}}">
+                                                        <div
+                                                            class="team {{ $match->team1_score > $match->team2_score ? 'winner' : '' }}">
+                                                            {{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}
+                                                            <span class="score">{{ $match->team1_score }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="team {{ $match->team2_score > $match->team1_score ? 'winner' : '' }}">
+                                                            {{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}
+                                                            <span class="score">{{ $match->team2_score }}</span>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endforeach
+
+                                        @if($champion)
+                                            <div class="final">
+                                                <div class="winner-box">
+                                                    <h4 class="mb-0">🏆 <br> Winner {{ $champion->name }}</h4>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div> -->
+
                                     <div class="tournament-bracket">
                                         @foreach($matchesByRound as $round => $matches)
                                             <div class="round">
@@ -332,16 +313,19 @@
                                         @endforeach
 
                                         @if($champion)
-                                            <div class="round">
-                                                <div class="badge badge-rounded bg-success round-title">Winner</div>
+                                            <div class="final">
                                                 <div class="winner-box">
-                                                    <h4 class="mb-0">🏆 <br> {{ $champion->name }}</h4>
+                                                    <h4 class="mb-0">🏆 <br> Winner {{ $champion->name }}</h4>
                                                 </div>
                                             </div>
                                         @endif
                                     </div>
+
+
+
+
                                 </div>
-                            <!-- </div> -->
+                            </div>
 
 
                            {{-- MATCH SCORING --}}
@@ -349,7 +333,7 @@
                                 <div class="card-header bg-primary text-white w-100">
                                     <h5 class="mb-0">{{$matchType}} Score</h5>
                                 </div>
-                                <!-- <table class="table table-bordered text-center">
+                                <table class="table table-bordered text-center">
                                     <thead class="thead-light">
                                         <tr>
                                             <th style="white-space: nowrap;">{{$matchType}} No.</th>
@@ -367,138 +351,69 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($data['schedule']->gameMatch as $match)
-                                                @php
-                                                    // Ensure team1 and team2 exist before accessing their names
-                                                    $team1Name = $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE');
-                                                    $team2Name = $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE');
+    @php
+        // Ensure team1 and team2 exist before accessing their names
+        $team1Name = $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE');
+        $team2Name = $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE');
 
-                                                    // Check if scores are available
-                                                    $team1Score = isset($match->team1_score) ? $match->team1_score : null;
-                                                    $team2Score = isset($match->team2_score) ? $match->team2_score : null;
+        // Check if scores are available
+        $team1Score = isset($match->team1_score) ? $match->team1_score : null;
+        $team2Score = isset($match->team2_score) ? $match->team2_score : null;
 
-                                                    // Determine the winner using winner_id from the database
-                                                    if (!is_null($team1Score) && !is_null($team2Score)) {
-                                                        if ($team1Score > $team2Score) {
-                                                            $winner = $team1Name;
-                                                        } elseif ($team2Score > $team1Score) {
-                                                            $winner = $team2Name;
-                                                        } else {
-                                                            $winner = 'Draw';
-                                                        }
-                                                    } else {
-                                                        $winner = 'TBD'; // Ensure "TBD" is shown when no scores are entered
-                                                    }
-
-
-                                                    // Calculate points difference safely
-                                                    $pointsDifference = ($winner !== 'Draw' && $winner !== 'TBD') ? abs($team1Score - $team2Score) : 'N/A';
+        // Determine the winner using winner_id from the database
+        if (!is_null($team1Score) && !is_null($team2Score)) {
+            if ($team1Score > $team2Score) {
+                $winner = $team1Name;
+            } elseif ($team2Score > $team1Score) {
+                $winner = $team2Name;
+            } else {
+                $winner = 'Draw';
+            }
+        } else {
+            $winner = 'TBD'; // Ensure "TBD" is shown when no scores are entered
+        }
 
 
-                                                    // Highlight the winner only if it's not a draw or TBD
-                                                    $highlight = ($match->round === 'Final' && $winner !== 'Draw' && $winner !== 'TBD') ? "<b>{$winner} 🏆</b>" : $winner;
-                                                @endphp
+        // Calculate points difference safely
+        $pointsDifference = ($winner !== 'Draw' && $winner !== 'TBD') ? abs($team1Score - $team2Score) : 'N/A';
 
-                                                <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>Round {{ $match->round }}</td>
-                                                    <td>{{ $team1Name }}</td>                                                
-                                                    <td>{{ $team1Score ?? '-' }}</td>
-                                                    <td>{{ $team2Name }}</td>
-                                                    <td>{{ $team2Score ?? '-' }}</td>
-                                                    <td>{!! $highlight !!}</td>
-                                                    <td>{{ $team1Score ?? '-' }}</td>
-                                                    <td>{{ $team2Score ?? '-' }}</td>
-                                                            
-                                                    <td>
-                                                        @if ($winner !== 'Draw' && $winner !== 'TBD')
-                                                            {{ "+$pointsDifference for $winner" }}
-                                                        @else
-                                                            N/A
-                                                        @endif
-                                                    </td>
-                                                    
-                                                    <td>
-                                                        @if (!is_null($match->winner_id) && !is_null($team1Score) && !is_null($team2Score))
-                                                            Completed
-                                                        @else
-                                                            Pending
-                                                        @endif
-                                                    </td>
-                                                    
-                                                </tr>
-                                            @endforeach
-                                    </tbody>
-                                </table> -->
 
-                               <table class="table table-bordered text-center" style="font-size: 14px; width: 100%;">
-                                    <thead class="thead-light" style="background-color: #f8f9fa;">
-                                        <tr>
-                                            <th style="white-space: nowrap; width: 5%; padding: 5px;color:#000;">#</th>
-                                            <th style="white-space: nowrap; width: 5%; padding: 5px;color:#000;">Round</th>
-                                            <th style="white-space: nowrap; width: 15%; padding: 5px;color:#000;">{{$matchParticipant}} A</th>
-                                            <th style="white-space: nowrap; width: 7%; padding: 5px;color:#000;">Score</th>
-                                            <th style="white-space: nowrap; width: 15%; padding: 5px;color:#000;">{{$matchParticipant}} B</th>
-                                            <th style="white-space: nowrap; width: 7%; padding: 5px;color:#000;">Score</th>
-                                            <th style="white-space: nowrap; width: 15%; padding: 5px;color:#000;">Winner</th>
-                                            <th style="white-space: nowrap; width: 5%; padding: 5px;color:#000;">Pts A</th>
-                                            <th style="white-space: nowrap; width: 5%; padding: 5px;color:#000;">Pts B</th>
-                                            <th style="white-space: nowrap; width: 10%; padding: 5px;color:#000;">Pts Diff</th>
-                                            <th style="white-space: nowrap; width: 6%; padding: 5px;color:#000;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($data['schedule']->gameMatch as $match)
-                                            @php
-                                                $team1Name = $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE');
-                                                $team2Name = $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE');
-                                                $team1Score = isset($match->team1_score) ? $match->team1_score : '-';
-                                                $team2Score = isset($match->team2_score) ? $match->team2_score : '-';
+        // Highlight the winner only if it's not a draw or TBD
+        $highlight = ($match->round === 'Final' && $winner !== 'Draw' && $winner !== 'TBD') ? "<b>{$winner} 🏆</b>" : $winner;
+    @endphp
 
-                                                if (!is_null($match->team1_score) && !is_null($match->team2_score)) {
-                                                    if ($match->team1_score > $match->team2_score) {
-                                                        $winner = $team1Name;
-                                                    } elseif ($match->team2_score > $match->team1_score) {
-                                                        $winner = $team2Name;
-                                                    } else {
-                                                        $winner = 'Draw';
-                                                    }
-                                                } else {
-                                                    $winner = 'TBD';
-                                                }
+    <tr>
+        <td>{{ $loop->iteration }}</td>
+        <td>Round {{ $match->round }}</td>
+        <td>{{ $team1Name }}</td>                                                
+        <td>{{ $team1Score ?? '-' }}</td>
+        <td>{{ $team2Name }}</td>
+        <td>{{ $team2Score ?? '-' }}</td>
+        <td>{!! $highlight !!}</td>
+        <td>{{ $team1Score ?? '-' }}</td>
+        <td>{{ $team2Score ?? '-' }}</td>
+                   
+        <td>
+            @if ($winner !== 'Draw' && $winner !== 'TBD')
+                {{ "+$pointsDifference for $winner" }}
+            @else
+                N/A
+            @endif
+        </td>
+        
+        <td>
+            @if (!is_null($match->winner_id) && !is_null($team1Score) && !is_null($team2Score))
+                Completed
+            @else
+                Pending
+            @endif
+        </td>
+        
+    </tr>
+@endforeach
 
-                                                $pointsDifference = ($winner !== 'Draw' && $winner !== 'TBD') ? abs($match->team1_score - $match->team2_score) : 'N/A';
-                                                $highlight = ($match->round === 'Final' && $winner !== 'Draw' && $winner !== 'TBD') ? "<b style='color: #d63384;'>{$winner} 🏆</b>" : $winner;
-                                                $status = (!is_null($match->winner_id)) ? '<span style="color: #28a745;">✓</span>' : '<span style="color: #dc3545;">Pending</span>';
-                                                
-                                                $roundDisplay = preg_replace('/^Round /', 'R', $match->round);
-                                                
-                                                // Row background color alternating
-                                                $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8f9fa;' : 'background-color: #ffffff;';
-                                            @endphp
-
-                                            <tr style="{{ $rowBg }}">
-                                                <td style="padding: 5px;">{{ $loop->iteration }}</td>
-                                                <td style="padding: 5px;">{{ $roundDisplay }}</td>
-                                                <td style="padding: 5px; text-align: left;">{{ $team1Name }}</td>                                                
-                                                <td style="padding: 5px; font-weight: bold;">{{ $team1Score }}</td>
-                                                <td style="padding: 5px; text-align: left;">{{ $team2Name }}</td>
-                                                <td style="padding: 5px; font-weight: bold;">{{ $team2Score }}</td>
-                                                <td style="padding: 5px;">{!! $highlight !!}</td>
-                                                <td style="padding: 5px;">{{ $team1Score }}</td>
-                                                <td style="padding: 5px;">{{ $team2Score }}</td>
-                                                <td style="padding: 5px;">
-                                                    @if ($winner !== 'Draw' && $winner !== 'TBD')
-                                                        <span style="color: #6c757d;">+{{ $pointsDifference }}</span>
-                                                    @else
-                                                        N/A
-                                                    @endif
-                                                </td>
-                                                <td style="padding: 5px;">{!! $status !!}</td>
-                                            </tr>
-                                        @endforeach
                                     </tbody>
                                 </table>
-                                
                             </div>
 
                         </div>

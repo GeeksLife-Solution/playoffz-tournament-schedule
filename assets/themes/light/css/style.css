@@ -297,7 +297,7 @@ a.btn-custom {
 }
 
 .navbar {
-    padding: 0px 15px;
+    padding: 10px 15px;
     background: var(--white);
     -webkit-box-shadow: var(--shadow);
     box-shadow: var(--shadow);
@@ -311,7 +311,7 @@ a.btn-custom {
 }
 
 .navbar .navbar-brand img {
-    max-width: 115px;
+    max-width: 200px;
 }
 
 .navbar .dropdown {
@@ -411,6 +411,7 @@ a.btn-custom {
     text-transform: uppercase;
     font-weight: 600;
     -webkit-transition: 0.4s;
+    font-size: 20px;
     transition: 0.4s;
 }
 
@@ -1106,7 +1107,7 @@ a.btn-custom {
     height: 95vh;
     position: fixed;
     left: 0;
-    top: 46px;
+    top: 72px;
     padding-top: 2px;
     background: var(--white);
     border-radius: 0px;
@@ -1115,6 +1116,7 @@ a.btn-custom {
     -webkit-transition: 0.4s;
     transition: 0.4s;
     overflow-y: auto;
+    font-size: 20px;
 }
 
 .leftbar::-webkit-scrollbar {
@@ -1597,9 +1599,9 @@ a.btn-custom {
 }
 
 .wrapper .content {
-    padding-top: 47px;
-    width: calc(100% - 500px);
-    margin: auto;
+    padding-top: 80px;
+    width: calc(100% - 250px);
+    margin-left: auto;
     min-height: 100vh;
     -webkit-transition: 0.4s;
     transition: 0.4s;
@@ -1673,6 +1675,7 @@ a.btn-custom {
     white-space: nowrap;
     -webkit-transition: 0.3s;
     transition: 0.3s;
+    font-size: 18px;
 }
 
 .categories a i {

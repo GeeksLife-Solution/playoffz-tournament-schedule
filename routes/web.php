@@ -13,6 +13,8 @@ use App\Http\Controllers\ManualRecaptchaController;
 use App\Http\Controllers\khaltiPaymentController;
 use App\Http\Controllers\GameFetchController;
 use App\Models\GameCategory;
+use App\Models\GameSchedule;
+use App\Models\GameMatch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InAppNotificationController;
@@ -64,21 +66,64 @@ Route::get('/themeMode/{themeType?}', function ($themeType = 'true') {
 //     return view(template() . 'home', $data);
 // })->name('home');
 
+// Route::get('/', function () {
+//     $data['gameCategories'] = GameCategory::with([
+//         'activeTournament',
+//         'gameSchedule' => function ($query) {
+//             $query->latest()->limit(5); // Fetch latest 5 schedules per category
+//         },
+//         'gameSchedule.gameMatch.team1', // Load Team A details
+//         'gameSchedule.gameMatch.team2'  // Load Team B details
+//     ])->withCount('gameActiveMatch')
+//       ->whereStatus(1)
+//       ->orderByDesc('game_active_match_count')
+//       ->get();
+//     $data['showall'] = true;
+//     return view(template() . 'home', $data);
+// })->name('home');
+
 Route::get('/', function () {
     $data['gameCategories'] = GameCategory::with([
         'activeTournament',
         'gameSchedule' => function ($query) {
-            $query->latest()->limit(5); // Fetch latest 5 schedules per category
+            $query->whereHas('gameMatch', function($matchQuery) {
+                    $matchQuery->whereNotNull('match_date')
+                               ->whereNotNull('match_time');
+                })
+                ->with(['gameMatch' => function($matchQuery) {
+                    $matchQuery->whereNotNull('match_date')
+                               ->whereNotNull('match_time')
+                               ->orderBy('match_date');
+                }])
+                ->latest()
+                ->get(); // Show 3 most recent schedules per category
         },
-        'gameSchedule.gameMatch.team1', // Load Team A details
-        'gameSchedule.gameMatch.team2'  // Load Team B details
-    ])->withCount('gameActiveMatch')
-      ->whereStatus(1)
-      ->orderByDesc('game_active_match_count')
-      ->get();
+        'gameSchedule.gameMatch.team1',
+        'gameSchedule.gameMatch.team2'
+    ])
+    ->whereStatus(1)
+    ->orderByDesc('created_at') // Or any other relevant ordering
+    ->get();
+
     $data['showall'] = true;
     return view(template() . 'home', $data);
 })->name('home');
+
+
+// FOR MODAL DATA :
+Route::get('/get-schedule-matches/{schedule}', function($scheduleId) {
+    $schedule = GameSchedule::with(['gameMatch.team1', 'gameMatch.team2'])
+        ->findOrFail($scheduleId);
+    
+    return response()->json([
+        'schedule' => $schedule->name,
+        'matches' => $schedule->gameMatch()
+            // ->whereNotNull('match_date')
+            // ->whereNotNull('match_time')
+            ->orderBy('id')
+            ->get()
+    ]);
+})->name('get-schedule-matches');
 
 
 Route::get('clear', function () {

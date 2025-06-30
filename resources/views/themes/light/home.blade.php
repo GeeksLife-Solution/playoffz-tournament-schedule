@@ -2,9 +2,9 @@
 @section('title',trans('Home'))
 
 @section('content')
-
     <!-- wrapper -->
     <div class="wrapper" id="getMatchList" v-cloak>
+       
         <!-- leftbar -->
         <div class="leftbar" id="leftbar">
             <div class="px-1 mt-2 d-lg-none">
@@ -15,7 +15,7 @@
                     <i class="fal fa-chevron-left"></i> @lang('Back')
                 </button>
             </div>
-            <div class="top p-1 d-flex">
+            <!-- <div class="top p-1 d-flex">
                 <button @click="liveUpComing('live')" type="button" :class="{light: (showType == 'upcoming')}"  class="btn-custom me-1">
                     <i class="las la-podcast"></i>
                     @lang('Live')
@@ -24,15 +24,13 @@
                     <i class="las la-meteor"></i>
                     @lang('Upcoming')
                 </button>
-            </div>
+            </div> -->
             @include($theme.'partials.home.leftMenu')
 
             <div class="bottom p-1">
                 <a href="{{route('betResult')}}" class="btn-custom light w-100">@lang('results')</a>
             </div>
         </div>
-
-        @include($theme.'partials.home.rightbar')
 
         <!-- contents -->
         <div class="content">
@@ -44,170 +42,901 @@
                 @include($theme.'partials.home.content')
             @endif
 
-           {{-- EACH CATGEORY WISE - SCOREBOARD FOR A PARTICULAR CATEGORY --}}
-            @isset($selectedCategory)
-                @if($selectedCategory)
-                    <h3 class="text-center mb-2 mt-2">{{ $selectedCategory->name }} - Score List</h3>
-                    @foreach($selectedCategory->gameSchedule as $schedule)
-                        <div class="schedule-section mb-4">
-                            <h4 class="schedule-title bg-dark text-white p-2">
-                                {{ $schedule->name }}
-                            </h4>
-
-                            @php
-                                $matches = $schedule->gameMatch;
-                                $finalMatch = $matches->whereNotNull('winner_id')->last(); // Get the last match with a winner
-                                $initialMatch = $finalMatch ?? $matches->first(); // Show final match if available, else first match
-                            @endphp
-
-                            <table class="table table-dark table-bordered text-center match-table mb-0" id="table-{{ $schedule->id }}">
-                                <thead>
-                                    <tr>
-                                        <th>Match No.</th>
-                                        <th>Round</th>
-                                        <th>Team A</th>
-                                        <th>Score A</th>
-                                        <th>Team B</th>
-                                        <th>Score B</th>
-                                        <th>Winner</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if ($initialMatch)
-                                        @php
-                                            $teamA = $initialMatch->team1 ? $initialMatch->team1->name : ($initialMatch->team1_placeholder ?? 'BYE');
-                                            $teamB = $initialMatch->team2 ? $initialMatch->team2->name : ($initialMatch->team2_placeholder ?? 'BYE');
-                                            $scoreA = $initialMatch->team1_score ?? '-';
-                                            $scoreB = $initialMatch->team2_score ?? '-';
-
-                                            if (is_numeric($scoreA) && is_numeric($scoreB)) {
-                                                if ($scoreA > $scoreB) {
-                                                    $winner = $teamA;
-                                                } elseif ($scoreB > $scoreA) {
-                                                    $winner = $teamB;
-                                                } else {
-                                                    $winner = 'Draw';
-                                                }
-                                            } else {
-                                                $winner = 'TBD';
-                                            }
-
-                                            $status = (!is_null($initialMatch->winner_id) && is_numeric($scoreA) && is_numeric($scoreB)) ? 'Completed' : 'Pending';
-                                        @endphp
-
-                                        <tr>
-                                            <td>{{ $loop->index+1 }}</td>
-                                            <td>{{ $initialMatch->round }}</td>
-                                            <td>{{ $teamA }}</td>
-                                            <td>{{ $scoreA }}</td>
-                                            <td>{{ $teamB }}</td>
-                                            <td>{{ $scoreB }}</td>
-                                            <td>{!! $winner !!}</td>
-                                            <td>{{ $status }}</td>
-                                        </tr>
-                                    @endif
-                                </tbody>
-                            </table>
-
-                            {{-- View More Button --}}
-                            @if ($matches->count() > 1)
-                                <button class="btn btn-primary view-more-btn w-100 rounded-0" data-schedule="{{ $schedule->id }}" data-expanded="false">View More</button>
-                            @endif
+            {{-- SCOREBOARD SECTION --}}
+            <div class="container-fluid mt-4">
+                @isset($selectedCategory)
+                    @if($selectedCategory)
+                        <div class="tournament-header mb-4 ms-2">
+                            <div class="d-flex align-items-center justify-content-start">
+                                <!-- <img src="{{ asset($selectedCategory->image ?? 'images/default_trophy.png') }}" 
+                                     alt="{{ $selectedCategory->icon }}" 
+                                     class="trophy-img me-3"> -->
+                                    <span class="me-2 cat-icons">{!! $selectedCategory->icon !!}</span>
+                                <div>
+                                    <h2 class="tournament-title mb-0">{{ $selectedCategory->name }}</h2>
+                                </div>
+                            </div>
                         </div>
-                    @endforeach
-                @endif
-            @endisset
-            {{-- END SCORE BOARD --}}
 
-            {{-- ALL SPORTS WISE --}}
-            @if(isset($gameCategories) && $showall == true)
-                @foreach($gameCategories as $category)
-                    @php
-                        // Filter schedules that have at least one match
-                        $validSchedules = $category->gameSchedule->filter(function($schedule) {
-                            return $schedule->gameMatch->isNotEmpty();
-                        });
-                    @endphp
+                        <div class="d-flex flex-wrap">
+                            @foreach($selectedCategory->gameSchedule as $schedule)
+                                @php
+                                    // Filter out matches without date/time and sort by date
+                                    $matches = $schedule->gameMatch
+                                        ->filter(function($match) {
+                                            return !is_null($match->match_date) && !is_null($match->match_time);
+                                        })
+                                        ->sortBy('match_date');
+                                    
+                                    // Find the most relevant match to display
+                                    $now = now();
+                                    $upcomingMatch = null;
+                                    $latestCompletedMatch = null;
+                                    $currentMatch = null;
 
-                    @if ($validSchedules->isNotEmpty()) 
-                        <div class="category-section mb-5">
-                            <h3 class="text-center bg-success text-white p-3">{{ $category->name }} - Score List</h3>
+                                    foreach ($matches as $match) {
+                                        $matchTime = \Carbon\Carbon::parse($match->match_date . ' ' . $match->match_time);
+                                        
+                                        if ($match->winner_id) {
+                                            $latestCompletedMatch = $match;
+                                        } elseif ($matchTime->gte($now)) {
+                                            $upcomingMatch = $upcomingMatch ?? $match;
+                                        }
+                                    }
 
-                            @foreach($validSchedules as $schedule)
-                                <div class="schedule-section mb-4">
-                                    <h4 class="schedule-title bg-dark text-white p-2">
-                                        {{ $schedule->name }}
-                                    </h4>
+                                    // Priority: 1) Latest completed match, 2) Next upcoming match, 3) Most recent past match
+                                    $currentMatch = $latestCompletedMatch ?? $upcomingMatch ?? $matches->last();
+                                @endphp
 
+                                @if($currentMatch)
                                     @php
-                                        $matches = $schedule->gameMatch;
-                                        $firstMatch = $matches->first(); // Get first match
+                                        $matchTime = \Carbon\Carbon::parse($currentMatch->match_date . ' ' . $currentMatch->match_time);
+                                        $matchEndTime = $matchTime->copy()->addHours(2); // Assuming 2 hour match duration
+                                        
+                                        $isCompleted = (bool)$currentMatch->winner_id;
+                                        $isLive = !$isCompleted && $now->between($matchTime, $matchEndTime);
+                                        $isPast = !$isCompleted && $now->gt($matchEndTime);
+                                        
+                                        $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'past' : 'scheduled'));
+                                        $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Past' : 'Scheduled'));
                                     @endphp
 
-                                    <table class="table table-dark table-bordered text-center match-table mb-0" id="table-{{ $schedule->id }}">
-                                        <thead>
-                                            <tr>
-                                                <th>Match No.</th>
-                                                <th>Round</th>
-                                                <th>Team A</th>
-                                                <th>Score A</th>
-                                                <th>Team B</th>
-                                                <th>Score B</th>
-                                                <th>Winner</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if ($firstMatch)
-                                                @php
-                                                    $teamA = $firstMatch->team1 ? $firstMatch->team1->name : ($firstMatch->team1_placeholder ?? 'BYE');
-                                                    $teamB = $firstMatch->team2 ? $firstMatch->team2->name : ($firstMatch->team2_placeholder ?? 'BYE');
-                                                    $scoreA = $firstMatch->team1_score ?? '-';
-                                                    $scoreB = $firstMatch->team2_score ?? '-';
-
-                                                    if (is_numeric($scoreA) && is_numeric($scoreB)) {
-                                                        $winner = $scoreA > $scoreB ? $teamA : ($scoreB > $scoreA ? $teamB : 'Draw');
-                                                    } else {
-                                                        $winner = 'TBD';
-                                                    }
-
-                                                    $status = (!is_null($firstMatch->winner_id) && is_numeric($scoreA) && is_numeric($scoreB)) ? 'Completed' : 'Pending';
-                                                @endphp
-
-                                                <tr>
-                                                    <td>{{ $firstMatch->id }}</td>
-                                                    <td>{{ $firstMatch->round }}</td>
-                                                    <td>{{ $teamA }}</td>
-                                                    <td>{{ $scoreA }}</td>
-                                                    <td>{{ $teamB }}</td>
-                                                    <td>{{ $scoreB }}</td>
-                                                    <td>{!! $winner !!}</td>
-                                                    <td>{{ $status }}</td>
-                                                </tr>
+                                    <div class="col-lg-4 mb-4 p-2">
+                                        <div class="match-card">
+                                            <div class="match-header">
+                                                <h4 class="match-title">{{ $schedule->name }}</h4>
+                                                <div class="match-status-badge {{ $statusClass }}">
+                                                    {{ $statusText }}
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="match-body">
+                                                <!-- Team A -->
+                                                <div class="team team-a {{ $currentMatch->winner_id == $currentMatch->team1_id ? 'winner' : '' }}">
+                                                    <div class="team-logo">
+                                                        @if($currentMatch->team1)
+                                                            <img src="{{ asset($currentMatch->team1->avatar ?? 'assets/upload/team/default-img.webp') }}" 
+                                                                alt="{{ $currentMatch->team1->name }}">
+                                                        @else
+                                                            <div class="team-initials">BYE</div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="team-info">
+                                                        <h5 class="team-name">
+                                                            {{ $currentMatch->team1 ? $currentMatch->team1->name : ($currentMatch->team1_placeholder ?? 'BYE') }}
+                                                        </h5>
+                                                        @if($currentMatch->team1_score !== null)
+                                                            <div class="team-score">{{ $currentMatch->team1_score }}</div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Match Info -->
+                                                <div class="match-info">
+                                                    <div class="match-round">Round {{ $currentMatch->round }}</div>
+                                                    <div class="vs-circle">VS</div>
+                                                    <div class="match-time">
+                                                        {{ $matchTime->format('M d, H:i') }}
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Team B -->
+                                                <div class="team team-b {{ $currentMatch->winner_id == $currentMatch->team2_id ? 'winner' : '' }}">
+                                                    <div class="team-info">
+                                                        <h5 class="team-name">
+                                                            {{ $currentMatch->team2 ? $currentMatch->team2->name : ($currentMatch->team2_placeholder ?? 'BYE') }}
+                                                        </h5>
+                                                        @if($currentMatch->team2_score !== null)
+                                                            <div class="team-score">{{ $currentMatch->team2_score }}</div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="team-logo">
+                                                        @if($currentMatch->team2)
+                                                            <img src="{{ asset($currentMatch->team2->avatar ?? 'assets/upload/team/default-img.webp') }}" 
+                                                                alt="{{ $currentMatch->team2->name }}">
+                                                        @else
+                                                            <div class="team-initials">BYE</div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            @if($currentMatch->winner_id)
+                                                <div class="match-footer">
+                                                    <div class="winner-announcement">
+                                                        <i class="fas fa-trophy"></i>
+                                                        {{ $currentMatch->winner->name }} won by 
+                                                        @if(is_numeric($currentMatch->team1_score) && is_numeric($currentMatch->team2_score))
+                                                            {{ abs($currentMatch->team1_score - $currentMatch->team2_score) }} points
+                                                        @else
+                                                            default
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             @endif
-                                        </tbody>
-                                    </table>
-
-                                    {{-- View More Button --}}
-                                    @if ($matches->count() > 1)
-                                        <button class="btn btn-primary view-more-btn w-100 rounded-0" data-schedule="{{ $schedule->id }}" data-expanded="false">View More</button>
-                                    @endif
-                                </div>
+                                            
+                                            @if($matches->count() > 1)
+                                                <button class="btn btn-outline-primary view-more-matches" 
+                                                        data-schedule="{{ $schedule->id }}">
+                                                    View All Matches <i class="fas fa-chevron-down"></i>
+                                                </button>
+                                                
+                                                <div class="all-matches-container" id="all-matches-{{ $schedule->id }}" style="display:none;">
+                                                    @foreach($matches as $match)
+                                                        @php
+                                                            $mTime = \Carbon\Carbon::parse($match->match_date . ' ' . $match->match_time);
+                                                            $mEndTime = $mTime->copy()->addHours(2);
+                                                            $mIsCompleted = (bool)$match->winner_id;
+                                                            $mIsLive = !$mIsCompleted && $now->between($mTime, $mEndTime);
+                                                            $mIsPast = !$mIsCompleted && $now->gt($mEndTime);
+                                                            
+                                                            $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'past' : 'scheduled'));
+                                                        @endphp
+                                                        
+                                                        <div class="match-mini-card {{ $match->id == $currentMatch->id ? 'active' : '' }}">
+                                                            <div class="mini-card-header">
+                                                                <span>Match {{ $loop->iteration }}</span>
+                                                                <span class="round-badge">Round {{ $match->round }}</span>
+                                                                <span class="status-dot {{ $mStatusClass }}"></span>
+                                                            </div>
+                                                            <div class="mini-card-body">
+                                                                <div class="mini-team {{ $match->winner_id == $match->team1_id ? 'winner' : '' }}">
+                                                                    <span>{{ $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE') }}</span>
+                                                                    <span class="score">{{ $match->team1_score ?? '-' }}</span>
+                                                                </div>
+                                                                <div class="mini-team {{ $match->winner_id == $match->team2_id ? 'winner' : '' }}">
+                                                                    <span>{{ $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE') }}</span>
+                                                                    <span class="score">{{ $match->team2_score ?? '-' }}</span>
+                                                                </div>
+                                                            </div>
+                                                            @if($match->winner_id)
+                                                                <div class="mini-card-footer">
+                                                                    <i class="fas fa-trophy"></i> {{ $match->winner->name }} won
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                             @endforeach
+
                         </div>
                     @endif
-                @endforeach
-            @endif
-            {{-- ALL SPORTS WISE END --}}
+                @endisset
 
+                {{-- ALL SPORTS SECTION --}}
+                @if(isset($gameCategories) && $showall == true)
+                    @foreach($gameCategories as $category)
+                        @php
+                            // Get schedules with valid matches, ordered by most recent
+                            $schedulesToShow = $category->gameSchedule
+                                ->filter(function($schedule) {
+                                    return $schedule->gameMatch
+                                        ->whereNotNull('match_date')
+                                        ->whereNotNull('match_time')
+                                        ->isNotEmpty();
+                                })
+                                ->sortByDesc(function($schedule) {
+                                    return optional($schedule->gameMatch
+                                        ->whereNotNull('match_date')
+                                        ->whereNotNull('match_time')
+                                        ->sortByDesc('match_date')
+                                        ->first())->match_date;
+                                })
+                                ->take(3); // Show 3 most recent schedules
+                        @endphp
+
+                        @if($schedulesToShow->isNotEmpty())
+                            {{-- Category header --}}
+                            <div class="tournament-header mb-4 ms-2">
+                                <div class="d-flex align-items-center justify-content-start">
+                                    <span class="me-2 cat-icons">{!! $category->icon !!}</span>
+                                    <div>
+                                        <h2 class="tournament-title mb-0">{{ $category->name }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap">
+                                @foreach($schedulesToShow as $schedule)
+                                    @php
+                                        // Filter out matches without date/time and sort by date
+                                        $matches = $schedule->gameMatch
+                                            ->filter(function($match) {
+                                                return !is_null($match->match_date) && !is_null($match->match_time);
+                                            })
+                                            ->sortBy('match_date');
+                                        
+                                        // Find the most relevant match to display
+                                        $now = now();
+                                        $upcomingMatch = null;
+                                        $latestCompletedMatch = null;
+                                        $currentMatch = null;
+
+                                        foreach ($matches as $match) {
+                                            $matchTime = \Carbon\Carbon::parse($match->match_date . ' ' . $match->match_time);
+                                            
+                                            if ($match->winner_id) {
+                                                $latestCompletedMatch = $match;
+                                            } elseif ($matchTime->gte($now)) {
+                                                $upcomingMatch = $upcomingMatch ?? $match;
+                                            }
+                                        }
+
+                                        // Priority: 1) Latest completed match, 2) Next upcoming match, 3) Most recent past match
+                                        $currentMatch = $latestCompletedMatch ?? $upcomingMatch ?? $matches->last();
+                                    @endphp
+
+                                    @if($currentMatch)
+                                        @php
+                                            $matchTime = \Carbon\Carbon::parse($currentMatch->match_date . ' ' . $currentMatch->match_time);
+                                            $matchEndTime = $matchTime->copy()->addHours(2); // Assuming 2 hour match duration
+                                            
+                                            $isCompleted = (bool)$currentMatch->winner_id;
+                                            $isLive = !$isCompleted && $now->between($matchTime, $matchEndTime);
+                                            $isPast = !$isCompleted && $now->gt($matchEndTime);
+                                            
+                                            $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'past' : 'scheduled'));
+                                            $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Past' : 'Scheduled'));
+                                        @endphp
+
+                                        <div class="col-lg-4 mb-4 p-2">
+                                            <div class="match-card">
+                                                <div class="match-header">
+                                                    <h4 class="match-title">{{ $schedule->name }}</h4>
+                                                    <div class="match-status-badge {{ $statusClass }}">
+                                                        {{ $statusText }}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="match-body">
+                                                    <!-- Team A -->
+                                                    <div class="team team-a {{ $currentMatch->winner_id == $currentMatch->team1_id ? 'winner' : '' }}">
+                                                        <div class="team-logo">
+                                                            @if($currentMatch->team1)
+                                                                <img src="{{ asset($currentMatch->team1->avatar ?? 'assets/upload/team/default-img.webp') }}" 
+                                                                    alt="{{ $currentMatch->team1->name }}">
+                                                            @else
+                                                                <div class="team-initials">BYE</div>
+                                                            @endif
+                                                        </div>
+                                                        <div class="team-info">
+                                                            <h5 class="team-name">
+                                                                {{ $currentMatch->team1 ? $currentMatch->team1->name : ($currentMatch->team1_placeholder ?? 'BYE') }}
+                                                            </h5>
+                                                            @if($currentMatch->team1_score !== null)
+                                                                <div class="team-score">{{ $currentMatch->team1_score }}</div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Match Info -->
+                                                    <div class="match-info">
+                                                        <div class="match-round">Round {{ $currentMatch->round }}</div>
+                                                        <div class="vs-circle">VS</div>
+                                                        <div class="match-time">
+                                                            {{ $matchTime->format('M d, H:i') }}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Team B -->
+                                                    <div class="team team-b {{ $currentMatch->winner_id == $currentMatch->team2_id ? 'winner' : '' }}">
+                                                        <div class="team-info">
+                                                            <h5 class="team-name">
+                                                                {{ $currentMatch->team2 ? $currentMatch->team2->name : ($currentMatch->team2_placeholder ?? 'BYE') }}
+                                                            </h5>
+                                                            @if($currentMatch->team2_score !== null)
+                                                                <div class="team-score">{{ $currentMatch->team2_score }}</div>
+                                                            @endif
+                                                        </div>
+                                                        <div class="team-logo">
+                                                            @if($currentMatch->team2)
+                                                                <img src="{{ asset($currentMatch->team2->avatar ?? 'assets/upload/team/default-img.webp') }}" 
+                                                                    alt="{{ $currentMatch->team2->name }}">
+                                                            @else
+                                                                <div class="team-initials">BYE</div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                @if($currentMatch->winner_id)
+                                                    <div class="match-footer">
+                                                        <div class="winner-announcement">
+                                                            <i class="fas fa-trophy"></i>
+                                                            {{ $currentMatch->winner->name }} won by 
+                                                            @if(is_numeric($currentMatch->team1_score) && is_numeric($currentMatch->team2_score))
+                                                                {{ abs($currentMatch->team1_score - $currentMatch->team2_score) }} points
+                                                            @else
+                                                                default
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                                
+                                                @if($matches->count() > 1)
+                                                    <button class="btn btn-outline-primary view-more-matches" 
+                                                            data-schedule="{{ $schedule->id }}">
+                                                        View All Matches <i class="fas fa-chevron-down"></i>
+                                                    </button>
+                                                    
+                                                    <div class="all-matches-container" id="all-matches-{{ $schedule->id }}" style="display:none;">
+                                                        @foreach($matches as $match)
+                                                            @php
+                                                                $mTime = \Carbon\Carbon::parse($match->match_date . ' ' . $match->match_time);
+                                                                $mEndTime = $mTime->copy()->addHours(2);
+                                                                $mIsCompleted = (bool)$match->winner_id;
+                                                                $mIsLive = !$mIsCompleted && $now->between($mTime, $mEndTime);
+                                                                $mIsPast = !$mIsCompleted && $now->gt($mEndTime);
+                                                                
+                                                                $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'past' : 'scheduled'));
+                                                            @endphp
+                                                            
+                                                            <div class="match-mini-card {{ $match->id == $currentMatch->id ? 'active' : '' }}">
+                                                                <div class="mini-card-header">
+                                                                    <span>Match {{ $loop->iteration }}</span>
+                                                                    <span class="round-badge">Round {{ $match->round }}</span>
+                                                                    <span class="status-dot {{ $mStatusClass }}"></span>
+                                                                </div>
+                                                                <div class="mini-card-body">
+                                                                    <div class="mini-team {{ $match->winner_id == $match->team1_id ? 'winner' : '' }}">
+                                                                        <span>{{ $match->team1 ? $match->team1->name : ($match->team1_placeholder ?? 'BYE') }}</span>
+                                                                        <span class="score">{{ $match->team1_score ?? '-' }}</span>
+                                                                    </div>
+                                                                    <div class="mini-team {{ $match->winner_id == $match->team2_id ? 'winner' : '' }}">
+                                                                        <span>{{ $match->team2 ? $match->team2->name : ($match->team2_placeholder ?? 'BYE') }}</span>
+                                                                        <span class="score">{{ $match->team2_score ?? '-' }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                @if($match->winner_id)
+                                                                    <div class="mini-card-footer">
+                                                                        <i class="fas fa-trophy"></i> {{ $match->winner->name }} won
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+                    @endforeach
+                @endif
+            </div>
         </div>
-
     </div>
+
+    <!-- MODAL START -->
+    <div class="modal fade" id="allMatchesModal" tabindex="-1" aria-labelledby="allMatchesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="allMatchesModalLabel">All Matches</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalMatchesContent">
+                    <!-- Content will be loaded here via AJAX -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL END -->
 @endsection
 
+@push('style')
+<style>    
+    .trophy-img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+    }
+    
+    .tournament-title {
+        font-weight: 700;
+        font-size: 2rem;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .cat-icons i{
+        font-size: 22px;
+        line-height: 20px;
+        border: 1px dashed #7e7e7e;
+        padding: 10px;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ffffff;
+        background: #294056;
+    }
+    
+    .tournament-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    /* Match Card Styles */
+    .match-card {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .match-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .match-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        padding: 1rem 1.2rem 1.2rem;
+        background:#8fb568;
+        color: white;
+    }
+    
+    .match-title {
+        text-align:center;
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+        color:#233645 !important;
+    }
+    
+    .match-status-badge {
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 16px;
+        font-weight: 600;
+        position:absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .match-status-badge.live {
+        background: #e74c3c;
+        animation: pulse 1.5s infinite;
+    }
+    
+    .match-status-badge.scheduled {
+        background:rgb(65, 55, 255);
+    }    
+    
+    .match-status-badge.completed {
+        background: #27ae60;
+    }
+    
+    .match-body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.5rem 10px;
+    }
+    
+    .team {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+    
+    .team-a {
+        justify-content: flex-start;
+    }
+    
+    .team-b {
+        justify-content: flex-end;
+    }
+    
+    .team.winner {
+        position: relative;
+    }
+    
+    .team.winner::after {
+        content: 'Winner';
+        position: absolute;
+        top: 0px;
+        background: #f1c40f;
+        color: #2c3e50;
+        padding: 0.2rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    
+    .team-a.winner::after {
+        left: 17px;
+    }
+    
+    .team-b.winner::after {
+        right: 20px;
+    }
+    
+    .team-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 1rem;
+        overflow: hidden;
+        border: 2px solid #e9ecef;
+    }
+    
+    .team-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .team-initials {
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+    
+    .team-info {
+        text-align: center;
+    }
+    
+    .team-name {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color:#000 !important;
+    }
+    
+    .team-score {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+        color:#000 !important;
+    }
+    
+    .match-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0 1.5rem;
+    }
+    
+    .match-round {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .vs-circle {
+        width: 40px;
+        height: 40px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .match-time {
+        font-size: 0.6rem;
+        margin-top: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .match-footer {
+        padding: 0.8rem;
+        background: #f8f9fa;
+        text-align: center;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .winner-announcement {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .winner-announcement i {
+        color: #f1c40f;
+        margin-right: 0.5rem;
+    }
+    
+    .view-more-matches {
+        width: 100%;
+        padding: 0.8rem;
+        background: #f8f9fa;
+        border: none;
+        border-top: 1px solid #e9ecef;
+        color: #3498db;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .view-more-matches:hover {
+        background: #e9ecef;
+    }
+    
+    .view-more-matches i {
+        transition: transform 0.3s ease;
+    }
+    
+    .view-more-matches.collapsed i {
+        transform: rotate(180deg);
+    }
+    
+    .all-matches-container {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+    }
+    
+    .all-matches-container.show {
+        max-height: 1000px; /* Adjust based on content */
+    }
+    
+    .match-mini-card {
+        padding: 1rem;
+        border-bottom: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .match-mini-card:last-child {
+        border-bottom: none;
+    }
+    
+    .match-mini-card:hover {
+        background: #f8f9fa;
+    }
+    
+    .match-mini-card.active {
+        background: #e3f2fd;
+    }
+    
+    .mini-card-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .round-badge {
+        background: #e9ecef;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+    }
+    
+    .mini-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .mini-team {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+    }
+    
+    .mini-team.winner {
+        font-weight: 600;
+        color: #27ae60;
+    }
+    
+    .mini-team .score {
+        font-weight: 600;
+    }
+    
+    .mini-card-footer {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .mini-card-footer i {
+        color: #f1c40f;
+        margin-right: 0.3rem;
+        font-size: 0.7rem;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .match-body {
+            flex-direction: column;
+            padding: 1rem;
+        }
+        
+        .team {
+            width: 100%;
+            justify-content: center !important;
+            margin-bottom: 1rem;
+        }
+        
+        .team-b {
+            flex-direction: row-reverse;
+        }
+        
+        .match-info {
+            margin: 1rem 0;
+            width: 100%;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .vs-circle {
+            margin: 0 1rem;
+        }
+        
+        .team.winner::after {
+            top: -15px;
+        }
+    }
+
+    /* Modal Styles */
+#allMatchesModal .modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+#allMatchesModal .modal-header {
+    background: #8fb568;
+    color: white;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+
+#allMatchesModal .modal-title {
+    font-weight: 600;
+}
+
+#allMatchesModal .modal-body {
+    padding: 1.5rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#allMatchesModal .table {
+    margin-bottom: 0;
+}
+
+#allMatchesModal .table th {
+    font-weight: 600;
+    background: #000;
+    position: sticky;
+    top: 0;
+}
+
+#allMatchesModal .table tr:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+#allMatchesModal .modal-footer {
+    border-top: none;
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+
+#allMatchesModal .modal-header {
+    background: #8fb568;
+    color: white;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+#allMatchesModal .modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+#allMatchesModal .btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+#allMatchesModal .btn-close:hover {
+    opacity: 1;
+}
+</style>
+@endpush
+
 @push('script')
-{{-- JavaScript for Toggling Full Table Visibility --}}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Toggle all matches visibility
+        document.querySelectorAll('.view-more-matches').forEach(button => {
+            button.addEventListener('click', function() {
+                const scheduleId = this.getAttribute('data-schedule');
+                const container = document.getElementById(`all-matches-${scheduleId}`);
+                
+                if (container.style.display === 'none') {
+                    container.style.display = 'block';
+                    this.classList.add('collapsed');
+                    this.innerHTML = 'Hide Matches <i class="fas fa-chevron-up"></i>';
+                } else {
+                    container.style.display = 'none';
+                    this.classList.remove('collapsed');
+                    this.innerHTML = 'View All Matches <i class="fas fa-chevron-down"></i>';
+                }
+            });
+        });
+        
+        // Add animation to live matches
+        setInterval(() => {
+            document.querySelectorAll('.match-status-badge.live').forEach(badge => {
+                badge.style.opacity = badge.style.opacity === '0.6' ? '1' : '0.6';
+            });
+        }, 1000);
+    });
+</script>
+<script>
+    function toggleMatches(button, scheduleId) {
+        const container = document.getElementById(`all-matches-${scheduleId}`);
+        const icon = button.querySelector('i');
+        
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+            button.innerHTML = 'Hide Matches <i class="fas fa-chevron-up"></i>';
+        } else {
+            container.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+            button.innerHTML = 'View All Matches <i class="fas fa-chevron-down"></i>';
+        }
+    }
+</script>
+<!-- Keep your existing script section -->
+ {{-- JavaScript for Toggling Full Table Visibility --}}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll(".view-more-btn").forEach(button => {
@@ -588,5 +1317,127 @@
             }
         });
 
+    </script>
+   <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // View All Matches button click handler
+        document.querySelectorAll('.view-more-matches').forEach(button => {
+            button.addEventListener('click', function() {
+                const scheduleId = this.getAttribute('data-schedule');
+                const tournamentName = this.closest('.match-card').querySelector('.match-title').textContent;
+                
+                // Show loading state
+                document.getElementById('modalMatchesContent').innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading matches...</p>
+                    </div>
+                `;
+                
+                // Update modal title with tournament name
+                document.getElementById('allMatchesModalLabel').textContent = tournamentName;
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('allMatchesModal'));
+                modal.show();
+                
+                // Fetch the matches data
+                fetch(`/get-schedule-matches/${scheduleId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Format the matches data
+                        let matchesHtml = `
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Match</th>
+                                            <th>Round</th>
+                                            <th>Team A</th>
+                                            <th>Score</th>
+                                            <th>Team B</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Date/Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        data.matches.forEach((match, index) => {
+                            // Initialize variables
+                            let status = 'Scheduled';
+                            let statusClass = 'text-primary';
+                            let formattedDate = '--';
+                            
+                            // Try to parse date if available
+                            if (match.match_date && match.match_time) {
+                                try {
+                                    const matchTime = new Date(`${match.match_date}T${match.match_time}`);
+                                    if (!isNaN(matchTime.getTime())) {
+                                        // Format date as "May 19, 2025 11:00 AM"
+                                        formattedDate = matchTime.toLocaleString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            year: 'numeric',
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        });
+                                        
+                                        const now = new Date();
+                                        const endTime = new Date(matchTime.getTime() + 2 * 60 * 60 * 1000); // 2 hours duration
+                                        
+                                        if (match.winner_id) {
+                                            status = 'Completed';
+                                            statusClass = 'text-success';
+                                        } else if (now >= matchTime && now <= endTime) {
+                                            status = 'Live';
+                                            statusClass = 'text-danger';
+                                        } else if (now > endTime) {
+                                            status = 'Past';
+                                            statusClass = 'text-muted';
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing date:', e);
+                                }
+                            }
+                            
+                            matchesHtml += `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${match.round || '--'}</td>
+                                    <td>${match.team1 ? match.team1.name : (match.team1_placeholder || 'BYE')}</td>
+                                    <td>${match.team1_score !== null ? match.team1_score : '-'}</td>
+                                    <td>${match.team2 ? match.team2.name : (match.team2_placeholder || 'BYE')}</td>
+                                    <td>${match.team2_score !== null ? match.team2_score : '-'}</td>
+                                    <td class="${statusClass}">${status}</td>
+                                    <td>${formattedDate}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        matchesHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                        
+                        document.getElementById('modalMatchesContent').innerHTML = matchesHtml;
+                    })
+                    .catch(error => {
+                        console.error('Error loading matches:', error);
+                        document.getElementById('modalMatchesContent').innerHTML = `
+                            <div class="alert alert-danger">
+                                Failed to load matches. Please try again.
+                            </div>
+                        `;
+                    });
+            });
+        });
+    });
     </script>
 @endpush
