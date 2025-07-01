@@ -17,6 +17,91 @@ use Illuminate\Support\Facades\Storage;
 
 class ScheduleController extends Controller
 {
+
+    public function listGroups(){
+        $title = "Groups List";
+        $userId = Auth::id();
+        $data['schedule'] = GameSchedule::with('gameCategory')->where('user_id',$userId)->where('status',1)->orderBy('id','DESC')->get();
+        return view(template() . 'user.groups.list', compact('title', 'data'));
+    }
+    
+    public function listCourts(){
+        $title = "Courts List";
+        $userId = Auth::id();
+        $data['schedule'] = GameSchedule::with('gameCategory')->where('user_id',$userId)->where('status',1)->orderBy('id','DESC')->get();
+        return view(template() . 'user.courts.list', compact('title', 'data'));
+    }
+
+    public function groupSchedule($scheduleId)
+    {
+        try {
+            $userId = Auth::id();
+
+            // Fetch the schedule with all related data
+            $schedule = GameSchedule::with([
+                'gameCategory',
+                'gameTeams',
+                'gameMatch',
+                'gameMatch.winner',
+                'gameGroups',
+                'gameAreas'
+            ])
+            ->where('user_id', $userId)
+            ->where('id', $scheduleId)
+            ->whereIn('status', [1, 0])
+            ->first();
+
+            if (!$schedule) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Schedule not found'
+                ]);
+            }
+
+            // Prepare match data for response
+            $matches = $schedule->gameMatch->map(function($match) {
+                return [
+                    'id' => $match->id,
+                    'team1_name' => $match->getTeam1Name(),
+                    'team2_name' => $match->getTeam2Name(),
+                    'team1_score' => $match->team1_score,
+                    'team2_score' => $match->team2_score,
+                    'is_editable' => $match->isEditable(),
+                    'play_group_id' => $match->play_group_id,
+                    'play_area_id' => $match->play_area_id,
+                    'play_group_name' => $match->playGroup->name ?? '',
+                    'play_area_name' => $match->playArea->name ?? '',
+                    'team1_avatar' => $match->team1 && $match->team1->avatar ? asset($match->team1->avatar) : '',
+                    'team2_avatar' => $match->team2 && $match->team2->avatar ? asset($match->team2->avatar) : '',
+                    'match_date' => $match->match_date ?? date('Y-m-d'),
+                    'match_time' => $match->match_time ?? date('H:i')
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'schedule' => [
+                        'id' => $schedule->id,
+                        'name' => $schedule->name,
+                        'start_date' => $schedule->start_date,
+                        'end_date' => $schedule->end_date,
+                        'description' => $schedule->description,
+                        'game_match' => $matches
+                    ],
+                    'matchType' => 'Match', // You can customize this
+                    'matchParticipant' => 'Team' // You can customize this
+                ]
+            ]);
+            
+        } catch (\Throwable $th) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching schedule details'
+            ], 500);
+        }
+    }
+
    public function listSchedule(){
     $title = "List Schedule";
     $userId = Auth::id();

@@ -536,6 +536,10 @@
     
     .match-status-badge.completed {
         background: #27ae60;
+    }   
+    
+    .match-status-badge.past {
+        background: #233645;
     }
     
     .match-body {

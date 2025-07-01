@@ -178,6 +178,15 @@ Route::group(['middleware' => ['maintenanceMode']], function () use ($basicContr
                 Route::get('add-fund', [HomeController::class, 'addFund'])->name('add.fund');
                 Route::get('funds', [HomeController::class, 'fund'])->name('fund.index');
 
+                // GROUP LIST
+                Route::get('list-groups', [ScheduleController::class, 'listGroups'])->name('groups.list');
+                Route::get('group-schedule/{id}', [ScheduleController::class, 'groupSchedule'])->name('group.schedule.list');
+
+                
+                // COURT LIST
+                Route::get('list-courts', [ScheduleController::class, 'listCourts'])->name('courts.list');
+                Route::get('court-schedule/{id}', [ScheduleController::class, 'courtSchedule'])->name('court.schedule.list');
+
                 /* ===== Playpass Routes START ===== */
                 Route::get('list-schedule', [ScheduleController::class, 'listSchedule'])->name('schedule.list');
 

@@ -71,6 +71,18 @@
                 </a>
             </li>
             <li>
+                <a href="{{route('user.groups.list')}}" class="{{menuActive('user.groups.list')}}">
+                    <i class="fal fa-trophy"></i>
+                    Groups
+                </a>
+            </li>
+            <li>
+                <a href="{{route('user.courts.list')}}" class="{{menuActive('user.courts.list')}}">
+                    <i class="fal fa-trophy"></i>
+                    Courts
+                </a>
+            </li>
+            <li>
                 <a href="{{route('user.registrations')}}" class="{{menuActive('user.registrations')}}">
                     <i class="fal fa-users"></i>
                     Registrations
@@ -103,7 +115,6 @@
         </ul>
 
     </div>
-
     <div class="content user-panel">
         <div class="d-flex justify-content-between">
             <div>
@@ -115,7 +126,6 @@
                 <i class="fal fa-sliders-h"></i>
             </button>
         </div>
-
         @yield('content')
     </div>
 
