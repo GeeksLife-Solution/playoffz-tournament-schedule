@@ -15,21 +15,7 @@
                     <i class="fal fa-chevron-left"></i> @lang('Back')
                 </button>
             </div>
-            <!-- <div class="top p-1 d-flex">
-                <button @click="liveUpComing('live')" type="button" :class="{light: (showType == 'upcoming')}"  class="btn-custom me-1">
-                    <i class="las la-podcast"></i>
-                    @lang('Live')
-                </button>
-                <button @click="liveUpComing('upcoming')" type="button" :class="{light: (showType == 'live')}"  class="btn-custom ">
-                    <i class="las la-meteor"></i>
-                    @lang('Upcoming')
-                </button>
-            </div> -->
             @include($theme.'partials.home.leftMenu')
-
-            <div class="bottom p-1">
-                <a href="{{route('betResult')}}" class="btn-custom light w-100">@lang('results')</a>
-            </div>
         </div>
 
         <!-- contents -->
@@ -97,8 +83,8 @@
                                         $isLive = !$isCompleted && $now->between($matchTime, $matchEndTime);
                                         $isPast = !$isCompleted && $now->gt($matchEndTime);
                                         
-                                        $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'past' : 'scheduled'));
-                                        $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Past' : 'Scheduled'));
+                                        $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'Not-Started' : 'scheduled'));
+                                        $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Not-Started' : 'Scheduled'));
                                     @endphp
 
                                     <div class="col-lg-4 mb-4 p-2">
@@ -190,7 +176,7 @@
                                                             $mIsLive = !$mIsCompleted && $now->between($mTime, $mEndTime);
                                                             $mIsPast = !$mIsCompleted && $now->gt($mEndTime);
                                                             
-                                                            $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'past' : 'scheduled'));
+                                                            $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'Not-Started' : 'scheduled'));
                                                         @endphp
                                                         
                                                         <div class="match-mini-card {{ $match->id == $currentMatch->id ? 'active' : '' }}">
@@ -299,8 +285,8 @@
                                             $isLive = !$isCompleted && $now->between($matchTime, $matchEndTime);
                                             $isPast = !$isCompleted && $now->gt($matchEndTime);
                                             
-                                            $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'past' : 'scheduled'));
-                                            $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Past' : 'Scheduled'));
+                                            $statusClass = $isCompleted ? 'completed' : ($isLive ? 'live' : ($isPast ? 'Not-Started' : 'scheduled'));
+                                            $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Not-Started' : 'Scheduled'));
                                         @endphp
 
                                         <div class="col-lg-4 mb-4 p-2">
@@ -392,7 +378,7 @@
                                                                 $mIsLive = !$mIsCompleted && $now->between($mTime, $mEndTime);
                                                                 $mIsPast = !$mIsCompleted && $now->gt($mEndTime);
                                                                 
-                                                                $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'past' : 'scheduled'));
+                                                                $mStatusClass = $mIsCompleted ? 'completed' : ($mIsLive ? 'live' : ($mIsPast ? 'Not-Started' : 'scheduled'));
                                                             @endphp
                                                             
                                                             <div class="match-mini-card {{ $match->id == $currentMatch->id ? 'active' : '' }}">
@@ -475,7 +461,6 @@
         justify-content: center;
         align-items: center;
         color: #ffffff;
-        background: #294056;
     }
     
     .tournament-subtitle {
@@ -490,6 +475,7 @@
         overflow: hidden;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
+        height:100%;
     }
     
     .match-card:hover {
@@ -498,20 +484,20 @@
     
     .match-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         position: relative;
         padding: 1rem 1.2rem 1.2rem;
-        background:#8fb568;
+        background:var(--primary);
         color: white;
     }
     
     .match-title {
         text-align:center;
-        margin: 0;
+        margin: 0 0px 5px;
         font-weight: 600;
-        font-size: 1.2rem;
-        color:#233645 !important;
+        font-size: 18px;
+        color: #233645 !important;
     }
     
     .match-status-badge {
@@ -535,10 +521,13 @@
     }    
     
     .match-status-badge.completed {
-        background: #27ae60;
+        background: #000;
     }   
     
     .match-status-badge.past {
+        background: #233645;
+    }
+    .match-status-badge.Not-Started{
         background: #233645;
     }
     
@@ -1401,7 +1390,7 @@
                                             status = 'Live';
                                             statusClass = 'text-danger';
                                         } else if (now > endTime) {
-                                            status = 'Past';
+                                            status = 'Not-Started';
                                             statusClass = 'text-muted';
                                         }
                                     }

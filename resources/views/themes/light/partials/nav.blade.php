@@ -18,9 +18,9 @@
             {!! renderHeaderMenu(getHeaderMenuData()) !!}
         </div>
         <div class="navbar-text">
-            <button onclick="darkMode()" class="btn-custom light night-mode">
+            <!-- <button onclick="darkMode()" class="btn-custom light night-mode">
                 <i class="fal fa-moon"></i>
-            </button>
+            </button> -->
 
 
             @auth
@@ -34,6 +34,12 @@
                                href="{{route('user.dashboard')}}">
                                 <i class="fa fa-home"></i>
                                 @lang('Dashboard')
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {{menuActive('user.profile')}}" href="{{route('user.profile')}}">
+                                <i class="fal fa-user"></i>
+                                @lang('profile')
                             </a>
                         </li>
                         {{-- <li>
@@ -54,12 +60,6 @@
                             <a class="dropdown-item {{menuActive('user.referral')}}" href="{{route('user.referral')}}">
                                 <i class="fal fa-user-friends"></i>
                                 @lang('invite friends')
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item {{menuActive('user.profile')}}" href="{{route('user.profile')}}">
-                                <i class="fal fa-user"></i>
-                                @lang('personal profile')
                             </a>
                         </li>
                         <li>
@@ -86,7 +86,7 @@
 
             <!-- notification panel -->
             <div class="notification-panel" id="pushNotificationArea">
-                @auth
+                <!-- @auth
                     @if(basicControl()->in_app_notification == 1)
                         <button class="dropdown-toggle" v-cloak>
                             <i class="fal fa-bell"></i>
@@ -114,18 +114,9 @@
                             </div>
                         </ul>
                     @endif
-                @endauth
+                @endauth -->
 
                 @guest
-                    <!-- login register button -->
-                    @if(basicControl()->registration)
-                        <button
-                            class="btn-custom"
-                            data-bs-toggle="modal"
-                            data-bs-target="#registerModal">
-                            @lang('Join')
-                        </button>
-                    @endif
                     <button
                         class="btn-custom"
                         data-bs-toggle="modal"

@@ -96,13 +96,13 @@ Route::get('/', function () {
                                ->orderBy('match_date');
                 }])
                 ->latest()
-                ->get(); // Show 3 most recent schedules per category
+                ->get();
         },
         'gameSchedule.gameMatch.team1',
         'gameSchedule.gameMatch.team2'
     ])
     ->whereStatus(1)
-    ->orderByDesc('created_at') // Or any other relevant ordering
+    ->orderByDesc('created_at')
     ->get();
 
     $data['showall'] = true;

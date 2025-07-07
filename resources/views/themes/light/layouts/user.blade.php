@@ -60,60 +60,47 @@
         <ul class="main">
             <li>
                 <a href="{{route('user.dashboard')}}" class="{{menuActive('user.dashboard')}}">
-                    <i class="fal fa-home"></i>
+                    <i class="fal fa-tachometer-alt"></i> <!-- More appropriate dashboard icon -->
                     Dashboard
                 </a>
             </li>
             <li>
                 <a href="{{route('user.schedule.list')}}" class="{{menuActive('user.schedule.list')}}">
-                    <i class="fal fa-trophy"></i>
+                    <i class="fal fa-calendar-alt"></i> <!-- Calendar icon for schedules -->
                     Schedules
                 </a>
             </li>
             <li>
                 <a href="{{route('user.groups.list')}}" class="{{menuActive('user.groups.list')}}">
-                    <i class="fal fa-trophy"></i>
+                    <i class="fal fa-users"></i> <!-- People icon for groups -->
                     Groups
                 </a>
             </li>
             <li>
                 <a href="{{route('user.courts.list')}}" class="{{menuActive('user.courts.list')}}">
-                    <i class="fal fa-trophy"></i>
+                    <i class="fal fa-map-marked-alt"></i> <!-- Location icon for courts -->
                     Courts
                 </a>
             </li>
             <li>
                 <a href="{{route('user.registrations')}}" class="{{menuActive('user.registrations')}}">
-                    <i class="fal fa-users"></i>
+                    <i class="fal fa-clipboard-list"></i> <!-- Clipboard icon for registrations -->
                     Registrations
                 </a>
             </li>
             <li>
                 <a href="{{route('user.member.list')}}" class="{{menuActive('user.member.list')}}">
-                    <i class="fal fa-map-marker-alt"></i>
+                    <i class="fal fa-user-friends"></i> <!-- Multiple users icon for members -->
                     Members
                 </a>
             </li>
             <li>
                 <a href="{{route('user.waiver.list')}}" class="{{menuActive('user.waiver.list')}}">
-                    <i class="fal fa-users-cog"></i>
+                    <i class="fal fa-file-signature"></i> <!-- Document with signature icon for waivers -->
                     Waivers
                 </a>
             </li>
-            {{-- <li>
-                <a href="#groups" class="{{menuActive('user.groups')}}">
-                    <i class="fal fa-users"></i>
-                    Groups
-                </a>
-            </li>
-            <li>
-                <a href="#schedule" class="{{menuActive('user.schedule')}}">
-                    <i class="fal fa-calendar-alt"></i>
-                    Schedule
-                </a>
-            </li> --}}
         </ul>
-
     </div>
     <div class="content user-panel">
         <div class="d-flex justify-content-between">

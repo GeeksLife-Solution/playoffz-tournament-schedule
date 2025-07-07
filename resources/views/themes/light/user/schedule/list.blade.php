@@ -20,7 +20,7 @@
                                         $encryptedUrl = encryptUrl($route, $params);
                                     @endphp
                                     <a href="{{$encryptedUrl}}" class="card shadow-sm mb-4">
-                                        <div class="card-header text-center bg-primary text-white">
+                                        <div class="card-header text-center bg-main text-white">
                                             <h5 class="m-0">@lang($schedule->name)</h5>
                                             <p class="text-white mb-0">{{dateTime($schedule->created_at, 'd M Y H:i')}}</p>
                                         </div>

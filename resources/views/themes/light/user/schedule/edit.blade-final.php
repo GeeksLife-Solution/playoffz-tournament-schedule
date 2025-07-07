@@ -1,155 +1,92 @@
 @extends($theme . 'layouts.user')
 @section('title', trans($title))
 <style>
+   .tournament-bracket-container {
+        overflow-x: auto;
+        padding: 20px;
+        position: relative; /* important for connectors */
+        background: #1e354d;
+    }
+
     .tournament-bracket {
         display: flex;
-        /* flex-direction: column; */
-        align-items: center;
-        gap: 20px;
-        margin-top: 20px;
+        gap: 20px; /* wider gap for clean connectors */
+        align-items: flex-start;
+        position: relative;
+        padding: 40px;
     }
 
     .round {
-        gap: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 50px; /* Increased spacing to match visual hierarchy */
+        position: relative;
+        min-height: 100%; /* Let columns stretch evenly */
     }
 
     .match {
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 10px;
+        width: 200px;
+        height: 70px; /* Fixed height ensures alignment */
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 1;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        position: relative;
-        padding: 10px;
+        justify-content: center;
     }
 
     .team {
-        width: 200px;
-        padding: 10px;
-        text-align: center;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        background-color: #f8f8f8;
-        font-weight: bold;
-        margin: 5px 0;
-        color: #294056;
-        position: relative;
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 8px;
+        background: #fff;
+        margin-bottom: 4px;
+        border-radius: 4px;
+        color: #000;
     }
 
     .team.winner {
-        border-color: gold;
-        background-color: rgba(255, 215, 0, 0.7);
+        font-weight: bold;
+        background: #d4edda;
+        border-left: 4px solid #28a745;
     }
 
     .score {
-        float: right;
         font-weight: bold;
-        color: #555;
-    }
-    
-    .match:first-child::before {
-        display: none;
     }
 
-    .matchFirst::before {
-        display: none;
-    }
-
-    .final {
+    .winner-box {
+        font-size: 20px;
+        font-weight: bold;
         text-align: center;
-        margin-top: 30px;
+        background: gold;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
     }
-</style>
-<style>
+
+    .connectors-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
     .tournament-bracket {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-}
+        display: grid;
+        grid-auto-flow: column;
+        grid-gap: 20px;
+        align-items: start;
+        padding: 40px;
+    }
 
-.round {
-    display: flex;
-    flex-direction: column;
-    margin: 0 10px;
-    position: relative;
-}
-
-.match {
-    margin: 0;
-    position: relative;
-}
-
-.team {
-    padding: 5px 10px;
-    margin: 2px 0;
-    width: 180px;
-    background: #f5f5f5;
-    border-radius: 4px;
-    position: relative;
-}
-
-.team.winner {
-    background: #e1f5fe;
-    font-weight: bold;
-}
-
-.score {
-    float: right;
-    margin-left: 10px;
-}
-
-/* Connector lines */
-.connector {
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    width: 20px;
-    height: 2px;
-    background: #999;
-    z-index: 1;
-}
-
-.team:nth-child(1) .connector {
-    transform: translateY(-50%);
-}
-
-.team:nth-child(2) .connector {
-    transform: translateY(-50%);
-}
-
-/* Vertical connector for next round */
-.match::after {
-        content: '';
-    position: absolute;
-    top: 29px;
-    bottom: 0;
-    right: -10px;
-    width: 2px;
-    background: #999;
-    z-index: 0;
-    height: 42%;
-}
-
-/* Hide connectors for the last round */
-.round:last-child .connector,
-.round:last-child .match::after {
-    display: none;
-}
-
-.final {
-    display: flex;
-    align-items: center;
-    margin-left: 20px;
-}
-
-.winner-box {
-    padding: 20px;
-    background: #e8f5e9;
-    border-radius: 8px;
-    text-align: center;
-    border: 3px solid gold;
-    padding: 15px;
-    background-color: rgba(255, 215, 0, 0.2);
-    border-radius: 10px;
-}
 </style>
 @section('content')
     @php 
@@ -231,59 +168,57 @@
                                 <div class="alert alert-warning">No {{$matchType}}s scheduled yet.</div>
                             @endif  
 
+                            <!-- FIXTURE LOGIC -->
+
                             @php
-                                // Group matches by round
                                 $matchesByRound = $data['schedule']->gameMatch->groupBy('round');
-
-                                // Find the last round that has matches
                                 $lastRound = $matchesByRound->keys()->max();
-
-                                // Find the final match to determine the champion
                                 $finalMatch = $matchesByRound[$lastRound]->first();
-                                $champion = null;
-                                if ($finalMatch && $finalMatch->winner_id) {
-                                    $champion = $finalMatch->winner;
-                                }
+                                $champion = $finalMatch && $finalMatch->winner_id ? $finalMatch->winner : null;
                             @endphp
 
                             <div class="mt-4">
                                 <div class="card-header bg-primary text-white">
-                                    <h5 class="mb-0">{{$matchType}} Fixtures</h5>
+                                    <h5 class="mb-0">{{ $matchType }} Fixtures</h5>
                                 </div>
-                                <div class="tournament-bracket">
-                                    @foreach($matchesByRound as $round => $matches)
-                                        <div class="round">
-                                            <div class="badge badge-rounded bg-success round-title">Round {{ $round }}</div>
-                                            @foreach($matches as $match)
-                                                <div class="match {{$loop->index == 0 ? 'matchFirst' : ''}}">
-                                                    <div class="team {{ $match->team1_score > $match->team2_score ? 'winner' : '' }}">
-                                                        {{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}
-                                                        <span class="score">{{ $match->team1_score }}</span>
-                                                        <div class="connector"></div>
-                                                    </div>
-                                                    <div class="team {{ $match->team2_score > $match->team1_score ? 'winner' : '' }}">
-                                                        {{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}
-                                                        <span class="score">{{ $match->team2_score }}</span>
-                                                        <div class="connector"></div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endforeach
 
-                                    @if($champion)
-                                        <div class="round">
-                                            <div class="badge badge-rounded bg-success round-title">Winner</div>
-                                            <div class="winner-box">
-                                                <h4 class="mb-0">🏆 <br> {{ $champion->name }}</h4>
+                                <div class="tournament-bracket-container">
+                                    <svg id="connectors-layer" class="connectors-layer"></svg>
+                                    <div class="tournament-bracket">
+                                        @foreach($matchesByRound as $round => $matches)
+                                            <div class="round" data-round="{{ $round }}">
+                                                <!-- <div class="round-title">Round {{ $round }}</div> -->
+                                                @foreach($matches as $match)
+                                                    <div class="match" id="match-{{ $match->id }}" data-id="{{ $match->id }}" data-round="{{ $match->round }}">
+                                                        <div class="team {{ $match->team1_score > $match->team2_score ? 'winner' : '' }}">
+                                                            {{ $match->team1_id == 0 ? $match->team1_placeholder : ($match->team1->name ?? 'BYE') }}
+                                                            <span class="score">{{ $match->team1_score }}</span>
+                                                        </div>
+                                                        <div class="team {{ $match->team2_score > $match->team1_score ? 'winner' : '' }}">
+                                                            {{ $match->team2_id == 0 ? $match->team2_placeholder : ($match->team2->name ?? 'BYE') }}
+                                                            <span class="score">{{ $match->team2_score }}</span>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
                                             </div>
-                                        </div>
-                                    @endif
+                                        @endforeach
+
+
+                                        @if($champion)
+                                            <div class="round winner-round">
+                                                <div class="round-title">🏆 Winner</div>
+                                                <div class="winner-box">
+                                                    {{ $champion->name }}
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
 
+                            <!-- FIXTURE LOGIC END -->
 
-                           {{-- MATCH SCORING --}}
+                            {{-- MATCH SCORING --}}
                             <div class="table-responsive mt-4">
                                 <div class="card-header bg-primary text-white w-100">
                                     <h5 class="mb-0">{{$matchType}} Score</h5>
@@ -450,7 +385,7 @@
 @endsection
 
     @push('script')
-    <script>
+    <!-- <script>
      document.addEventListener("DOMContentLoaded", function () {
         // Edit button click handler
         document.querySelectorAll(".edit-match-btn").forEach(button => {
@@ -520,5 +455,159 @@
         });
     });
     </script>
-    
+   <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const svg = document.getElementById('connectors-layer');
+        svg.innerHTML = '';
+
+        const matches = Array.from(document.querySelectorAll('.match'));
+
+        // Group matches by round
+        const matchesByRound = {};
+        matches.forEach(match => {
+            const round = match.dataset.round;
+            if (!matchesByRound[round]) {
+                matchesByRound[round] = [];
+            }
+            matchesByRound[round].push(match);
+        });
+
+        // Sort rounds numerically
+        const sortedRounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+
+        // Draw connectors from each round to the next
+        for (let i = 0; i < sortedRounds.length - 1; i++) {
+            const currentRound = sortedRounds[i];
+            const nextRound = sortedRounds[i + 1];
+
+            const currentMatches = matchesByRound[currentRound];
+            const nextMatches = matchesByRound[nextRound];
+
+            for (let j = 0; j < currentMatches.length; j += 2) {
+                const match1 = currentMatches[j];
+                const match2 = currentMatches[j + 1];
+                const nextMatch = nextMatches[Math.floor(j / 2)];
+
+                if (match1 && match2 && nextMatch) {
+                    drawForkConnector(match1, match2, nextMatch);
+                }
+
+            }
+        }
+
+        function drawForkConnector(match1, match2, toMatch) {
+            const svgRect = svg.getBoundingClientRect();
+            const m1Rect = match1.getBoundingClientRect();
+            const m2Rect = match2.getBoundingClientRect();
+            const toRect = toMatch.getBoundingClientRect();
+
+            // Match 1 exit point
+            const startX1 = m1Rect.right - svgRect.left;
+            const startY1 = m1Rect.top + m1Rect.height / 2 - svgRect.top;
+
+            // Match 2 exit point
+            const startX2 = m2Rect.right - svgRect.left;
+            const startY2 = m2Rect.top + m2Rect.height / 2 - svgRect.top;
+
+            // Join point (fork center)
+            const midX = (startX1 + startX2) / 2 + 40;
+            const midY = (startY1 + startY2) / 2;
+
+            // To match entry point
+            const endX = toRect.left - svgRect.left;
+            const endY = toRect.top + toRect.height / 2 - svgRect.top;
+
+            // Draw from match1 to fork
+            svg.appendChild(createPath(startX1, startY1, midX, midY));
+            // Draw from match2 to fork
+            svg.appendChild(createPath(startX2, startY2, midX, midY));
+            // Draw fork to next match
+            svg.appendChild(createPath(midX, midY, endX, endY));
+        }
+
+        function createPath(x1, y1, x2, y2) {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const dx = Math.abs(x2 - x1) / 2;
+            path.setAttribute('d', `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`);
+            path.setAttribute('stroke', '#0dcaf0');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            return path;
+        }
+    });
+</script> -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            drawAllConnectors();
+        });
+    });
+
+    function drawAllConnectors() {
+        const svg = document.getElementById('connectors-layer');
+        svg.innerHTML = '';
+
+        const matches = Array.from(document.querySelectorAll('.match'));
+        const matchesByRound = {};
+
+        matches.forEach(match => {
+            const round = match.dataset.round;
+            if (!matchesByRound[round]) matchesByRound[round] = [];
+            matchesByRound[round].push(match);
+        });
+
+        const sortedRounds = Object.keys(matchesByRound).sort((a, b) => parseInt(a) - parseInt(b));
+
+        for (let i = 0; i < sortedRounds.length - 1; i++) {
+            const currentMatches = matchesByRound[sortedRounds[i]];
+            const nextMatches = matchesByRound[sortedRounds[i + 1]];
+
+            for (let j = 0; j < currentMatches.length; j += 2) {
+                const match1 = currentMatches[j];
+                const match2 = currentMatches[j + 1];
+                const nextMatch = nextMatches[Math.floor(j / 2)];
+                if (match1 && match2 && nextMatch) {
+                    drawForkConnector(svg, match1, match2, nextMatch);
+                }
+            }
+        }
+    }
+
+    function drawForkConnector(svg, match1, match2, toMatch) {
+        const svgRect = svg.getBoundingClientRect();
+        const m1Rect = match1.getBoundingClientRect();
+        const m2Rect = match2.getBoundingClientRect();
+        const toRect = toMatch.getBoundingClientRect();
+
+        const startX1 = m1Rect.right - svgRect.left;
+        const startY1 = m1Rect.top + m1Rect.height / 2 - svgRect.top;
+
+        const startX2 = m2Rect.right - svgRect.left;
+        const startY2 = m2Rect.top + m2Rect.height / 2 - svgRect.top;
+
+        const midX = (startX1 + startX2) / 2 + 40;
+        const midY = (startY1 + startY2) / 2;
+
+        const endX = toRect.left - svgRect.left;
+        const endY = toRect.top + toRect.height / 2 - svgRect.top;
+
+        svg.appendChild(createPath(startX1, startY1, midX, midY));
+        svg.appendChild(createPath(startX2, startY2, midX, midY));
+        svg.appendChild(createPath(midX, midY, endX, endY));
+    }
+
+    function createPath(x1, y1, x2, y2) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const dx = Math.abs(x2 - x1) / 2;
+        path.setAttribute('d', `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`);
+        path.setAttribute('stroke', '#0dcaf0');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        return path;
+    }
+});
+</script>
+
 @endpush

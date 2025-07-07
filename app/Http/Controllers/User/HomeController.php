@@ -26,7 +26,11 @@ use Illuminate\Validation\ValidationException;
 use PragmaRX\Google2FA\Google2FA;
 use Stevebauman\Purify\Facades\Purify;
 use Facades\App\Services\BasicService;
-
+use App\Models\GameCategory;
+use App\Models\GameSchedule;
+use App\Models\GameMatch;
+use App\Models\GameMember;
+use App\Models\GameWaiver;
 
 class HomeController extends Controller
 {
@@ -58,34 +62,116 @@ class HomeController extends Controller
         }
     }
 
+    // public function index()
+    // {
+    //     $data['betInvests'] = BetInvest::with('betInvestLog')->where('user_id', $this->user->id)->orderBy('id', 'desc')->limit(6)->get();
+    //     $data['userBet'] = collect(BetInvest::with('betInvestLog')->where('user_id', $this->user->id)
+    //         ->selectRaw('SUM(CASE WHEN status != 2 THEN invest_amount END) as totalInvest')
+    //         ->selectRaw('SUM(CASE WHEN status = 1 THEN return_amount END) as totalReturn')
+    //         ->selectRaw('COUNT(CASE WHEN status = 1 THEN id END) AS win')
+    //         ->selectRaw('COUNT(CASE WHEN status != 2 THEN id END) AS totalBet')
+    //         ->orderBy('id', 'desc')
+    //         ->get()->toArray())->collapse();
+
+    //     $dailyPayout = $this->dayList();
+
+    //     BetInvest::where('user_id', $this->user->id)
+    //         ->whereMonth('created_at', Carbon::now()->month)
+    //         ->select(
+    //             DB::raw('SUM(invest_amount) as totalInvest'),
+    //             DB::raw('DATE_FORMAT(created_at,"Day %d") as date')
+    //         )
+    //         ->groupBy(DB::raw("DATE(created_at)"))
+    //         ->get()->map(function ($item) use ($dailyPayout) {
+    //             $dailyPayout->put($item['date'], round($item['totalInvest'], 2));
+    //         });
+
+    //     $data['dailyPayout'] = $dailyPayout;
+    //     $data['user'] = Auth::user();
+    //     $data['firebaseNotify'] = config('firebase');
+    //     return view(template() . 'user.dashboard', $data);
+    // }
 
     public function index()
     {
-        $data['betInvests'] = BetInvest::with('betInvestLog')->where('user_id', $this->user->id)->orderBy('id', 'desc')->limit(6)->get();
-        $data['userBet'] = collect(BetInvest::with('betInvestLog')->where('user_id', $this->user->id)
-            ->selectRaw('SUM(CASE WHEN status != 2 THEN invest_amount END) as totalInvest')
-            ->selectRaw('SUM(CASE WHEN status = 1 THEN return_amount END) as totalReturn')
-            ->selectRaw('COUNT(CASE WHEN status = 1 THEN id END) AS win')
-            ->selectRaw('COUNT(CASE WHEN status != 2 THEN id END) AS totalBet')
-            ->orderBy('id', 'desc')
-            ->get()->toArray())->collapse();
+        $userId = $this->user->id;
 
-        $dailyPayout = $this->dayList();
+        $data['scheduleStats'] = [
+            // Events statistics (GameSchedule)
+            'totalEvents' => GameSchedule::where('user_id', $userId)->where('status', 1)->count(),
+            
+            'completedEvents' => GameSchedule::where('user_id', $userId)
+                ->where('status', 1)
+                ->whereHas('matches', function($query) {
+                    $query->whereNotNull('match_date')
+                        ->whereNotNull('match_time');
+                })
+                ->whereDoesntHave('matches', function($query) {
+                    $query->whereNull('winner_id')
+                        ->whereNotNull('match_date')
+                        ->whereNotNull('match_time');
+                })
+                ->count(),
+                
+            'pendingEvents' => GameSchedule::where('user_id', $userId)
+                ->where('status', 1)
+                ->whereHas('matches', function($query) {
+                    $query->whereNotNull('match_date')
+                        ->whereNotNull('match_time')
+                        ->whereNull('winner_id')
+                        ->where('match_date', '>=', now()->format('Y-m-d'));
+                })
+                ->count(),
+                
+            'notStartedEvents' => GameSchedule::where('user_id', $userId)
+                ->where('status', 1)
+                ->whereHas('matches', function($query) {
+                    $query->whereNotNull('match_date')
+                        ->whereNotNull('match_time')
+                        ->whereNull('winner_id')
+                        ->where('match_date', '<', now()->format('Y-m-d'));
+                })
+                ->count(),
 
-        BetInvest::where('user_id', $this->user->id)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->select(
-                DB::raw('SUM(invest_amount) as totalInvest'),
-                DB::raw('DATE_FORMAT(created_at,"Day %d") as date')
-            )
-            ->groupBy(DB::raw("DATE(created_at)"))
-            ->get()->map(function ($item) use ($dailyPayout) {
-                $dailyPayout->put($item['date'], round($item['totalInvest'], 2));
-            });
+            // Matches statistics (GameMatch)
+            'totalMatches' => GameMatch::whereHas('gameSchedule', function($query) use ($userId) {
+                    $query->where('user_id', $userId)->where('status', 1);
+                })
+                ->whereNotNull('match_date')
+                ->whereNotNull('match_time')
+                ->count(),
+                
+            'completedMatches' => GameMatch::whereHas('gameSchedule', function($query) use ($userId) {
+                    $query->where('user_id', $userId)->where('status', 1);
+                })
+                ->whereNotNull('match_date')
+                ->whereNotNull('match_time')
+                ->whereNotNull('winner_id')
+                ->count(),
+                
+            'pendingMatches' => GameMatch::whereHas('gameSchedule', function($query) use ($userId) {
+                    $query->where('user_id', $userId)->where('status', 1);
+                })
+                ->whereNotNull('match_date')
+                ->whereNotNull('match_time')
+                ->whereNull('winner_id')
+                ->where('match_date', '>=', now()->format('Y-m-d'))
+                ->count(),
+                
+            'notStartedMatches' => GameMatch::whereHas('gameSchedule', function($query) use ($userId) {
+                    $query->where('user_id', $userId)->where('status', 1);
+                })
+                ->whereNotNull('match_date')
+                ->whereNotNull('match_time')
+                ->whereNull('winner_id')
+                ->where('match_date', '<', now()->format('Y-m-d'))
+                ->count(),
 
-        $data['dailyPayout'] = $dailyPayout;
-        $data['user'] = Auth::user();
-        $data['firebaseNotify'] = config('firebase');
+            // Other statistics
+            'totalWaivers' => GameWaiver::where('user_id', $userId)->where('status', 1)->count(),
+            'totalMembers' => GameMember::where('user_id', $userId)->where('status', 1)->count(),
+        ];
+        
         return view(template() . 'user.dashboard', $data);
     }
 
@@ -156,8 +242,6 @@ class HomeController extends Controller
             $req = $request->all();
             $user = $this->user;
             $rules = [
-                'firstname' => 'required',
-                'lastname' => 'required',
                 'username' => "sometimes|required|alpha_dash|min:5|unique:users,username," . $user->id,
                 'address' => 'required',
                 'language_id' => Rule::in($languages),
@@ -172,9 +256,10 @@ class HomeController extends Controller
                 $validator->errors()->add('profile', '1');
                 return back()->withErrors($validator)->withInput();
             }
+            
             $user->language_id = $req['language_id'];
-            $user->firstname = $req['firstname'];
-            $user->lastname = $req['lastname'];
+            // $user->firstname = $req['firstname'];
+            // $user->lastname = $req['lastname'];
             $user->username = $req['username'];
             $user->address_one = $req['address'];
             $user->save();

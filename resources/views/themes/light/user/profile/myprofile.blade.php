@@ -15,7 +15,7 @@
                         @csrf
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <!-- <div class="col-md-6">
                                 <label>@lang('First Name')</label>
                                 <div class="form-group input-box mb-3">
                                     <input class="form-control" type="text" name="firstname"
@@ -37,7 +37,7 @@
                                             class="error text-danger">@lang($errors->first('lastname')) </div>
                                     @endif
                                 </div>
-                            </div>
+                            </div> -->
 
                             <div class="col-md-6">
                                 <label>@lang('Username')</label>

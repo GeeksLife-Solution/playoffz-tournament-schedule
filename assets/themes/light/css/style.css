@@ -1,15 +1,28 @@
 @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap");
 
 :root {
-    --primary: #8fb568;
+    /* --primary: #8fb568; */
+    --primary:#17bf63 !important;
     --white: #fff;
     --black: #141720;
     --bgLight: #f4f9fc;
-    --bgDark: #233645;
+    /* --bgDark: #233645; */
+    --bgDark: #131720 !important;
+    --lightBg: #1a202c !important;
     --bgDark2: #294056;
     --borderColor: #e4e6eb;
     --gray: #5e627f;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.dashboard__card{
+    background-color:  var(--lightBg) !important;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color:  var(--primary);
+    border-color:  var(--primary);
 }
 
 * {
@@ -25,6 +38,10 @@ body {
     background: var(--bgLight);
     font-weight: 500;
     font-size: 15px;
+}
+
+.bg-main{
+    background: var(--primary);
 }
 
 .rtl {
@@ -664,7 +681,8 @@ a.btn-custom {
 }
 
 .dark-mode .navbar {
-    background: var(--bgDark);
+    background: var(--lightBg);
+    box-shadow: 0px 0px 10px #151a24;
 }
 
 .dark-mode .navbar .navbar-brand,
@@ -1698,7 +1716,7 @@ a.btn-custom {
 }
 
 .dark-mode .categories {
-    background: var(--bgDark2);
+    background: var(--lightBg);
 }
 
 .dark-mode .categories a {
@@ -3972,7 +3990,7 @@ a.btn-custom {
     flex-direction: column;
     min-width: 0;
     word-wrap: break-word;
-    background-color: #294056;
+    background-color: var(--lightBg);
     background-clip: border-box;
     border: 1px solid rgba(0, 0, 0, .125);
     border-radius: 0.25rem;
@@ -4726,7 +4744,7 @@ div[class*=col]:nth-of-type(4n + 1) .dashboard__card {
 
 
 div[class*=col]:nth-of-type(4n + 1) .dashboard__card-icon {
-    color: #FF3653;
+    color: var(--primary);
 }
 
 .dashboard__card-icon, .dashboard-link, .feature-item_icon, .counter-item_icon {
@@ -4748,7 +4766,7 @@ div[class*=col]:nth-of-type(4n + 2) .dashboard__card {
 }
 
 div[class*=col]:nth-of-type(4n + 2) .dashboard__card-icon {
-    color: #9F09FF;
+    color: var(--primary);
 }
 
 div[class*=col]:nth-of-type(4n + 2) .dashboard__card .view-btn {
@@ -4764,7 +4782,7 @@ div[class*=col]:nth-of-type(4n + 3) .dashboard__card {
 }
 
 div[class*=col]:nth-of-type(4n + 3) .dashboard__card-icon {
-    color: #465AFF;
+    color: var(--primary);
 }
 
 div[class*=col]:nth-of-type(4n + 3) .dashboard__card .view-btn {
@@ -4780,7 +4798,7 @@ div[class*=col]:nth-of-type(4n + 4) .dashboard__card {
 }
 
 div[class*=col]:nth-of-type(4n + 4) .dashboard__card-icon {
-    color: var(--brand-color);
+    color:var(--primary)
 }
 
 div[class*=col]:nth-of-type(4n + 4) .dashboard__card .view-btn {

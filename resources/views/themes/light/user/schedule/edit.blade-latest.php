@@ -3,14 +3,19 @@
 <style>
     .tournament-bracket {
         display: flex;
-        /* flex-direction: column; */
         align-items: center;
-        gap: 20px;
+        gap: 40px;
         margin-top: 20px;
+        flex-direction: row;
+        position: relative;
     }
 
     .round {
-        gap: 50px;
+        display: flex;
+        flex-direction: column;
+        margin: 0px;
+        position: relative;
+        gap:20px;
     }
 
     .match {
@@ -18,20 +23,22 @@
         flex-direction: column;
         align-items: center;
         position: relative;
-        padding: 10px;
+        padding: 0px;
+        margin: 0;
+        gap: 5px;
     }
 
     .team {
-        width: 200px;
-        padding: 10px;
-        text-align: center;
-        border: 2px solid #ccc;
-        border-radius: 8px;
-        background-color: #f8f8f8;
-        font-weight: bold;
-        margin: 5px 0;
-        color: #294056;
+        padding: 5px 10px;
+        margin: 2px 0;
+        width: 160px;
+        background: transparent;
+        border-radius: 4px;
         position: relative;
+        font-size: 14px;
+        border: 1px solid #0d6efd;
+        color: #fff;
+        text-align: center;
     }
 
     .team.winner {
@@ -42,7 +49,8 @@
     .score {
         float: right;
         font-weight: bold;
-        color: #555;
+        color: #dcdcdc;
+        margin-left: 10px;
     }
     
     .match:first-child::before {
@@ -57,99 +65,61 @@
         text-align: center;
         margin-top: 30px;
     }
-</style>
-<style>
-    .tournament-bracket {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-}
 
-.round {
-    display: flex;
-    flex-direction: column;
-    margin: 0 10px;
-    position: relative;
-}
+    /* Connector lines */
+    .connector {
+        position: absolute;
+        top: 50%;
+        right: -20px;
+        width: 20px;
+        height: 2px;
+        background: #0d6efd;
+        z-index: 1;
+    }
 
-.match {
-    margin: 0;
-    position: relative;
-}
+    .team:nth-child(1) .connector {
+        transform: translateY(-50%);
+    }
 
-.team {
-    padding: 5px 10px;
-    margin: 2px 0;
-    width: 180px;
-    background: #f5f5f5;
-    border-radius: 4px;
-    position: relative;
-}
-
-.team.winner {
-    background: #e1f5fe;
-    font-weight: bold;
-}
-
-.score {
-    float: right;
-    margin-left: 10px;
-}
-
-/* Connector lines */
-.connector {
-    position: absolute;
-    top: 50%;
-    right: -20px;
-    width: 20px;
-    height: 2px;
-    background: #999;
-    z-index: 1;
-}
-
-.team:nth-child(1) .connector {
-    transform: translateY(-50%);
-}
-
-.team:nth-child(2) .connector {
-    transform: translateY(-50%);
-}
-
-/* Vertical connector for next round */
-.match::after {
+    .team:nth-child(2) .connector {
+        transform: translateY(-50%);
+    }
+    
+    /* Vertical connector for next round */
+    .match::after {
         content: '';
-    position: absolute;
-    top: 29px;
-    bottom: 0;
-    right: -10px;
-    width: 2px;
-    background: #999;
-    z-index: 0;
-    height: 42%;
-}
+        position: absolute;
+        top: 18px;
+        bottom: 0;
+        right: -20px;
+        width: 1px;
+        background: #0d6efd;
+        z-index: 0;
+        height: 43px;
+    }
 
-/* Hide connectors for the last round */
-.round:last-child .connector,
-.round:last-child .match::after {
-    display: none;
-}
+    /* Hide connectors for the last round */
+    .round:last-child .connector,
+    .round:last-child .match::after {
+        display: none;
+    }
 
-.final {
-    display: flex;
-    align-items: center;
-    margin-left: 20px;
-}
+    .final {
+        display: flex;
+        align-items: center;
+        margin-left: 20px;
+    }
 
-.winner-box {
-    padding: 20px;
-    background: #e8f5e9;
-    border-radius: 8px;
-    text-align: center;
-    border: 3px solid gold;
-    padding: 15px;
-    background-color: rgba(255, 215, 0, 0.2);
-    border-radius: 10px;
-}
+    .winner-box {
+        padding: 20px;
+        background: #e8f5e9;
+        border-radius: 8px;
+        text-align: center;
+        border: 3px solid gold;
+        padding: 15px;
+        background-color: rgba(255, 215, 0, 0.2);
+        border-radius: 10px;
+    }
 </style>
 @section('content')
     @php 
@@ -253,7 +223,7 @@
                                 <div class="tournament-bracket">
                                     @foreach($matchesByRound as $round => $matches)
                                         <div class="round">
-                                            <div class="badge badge-rounded bg-success round-title">Round {{ $round }}</div>
+                                            <!-- <div class="badge badge-rounded bg-success round-title">Round {{ $round }}</div> -->
                                             @foreach($matches as $match)
                                                 <div class="match {{$loop->index == 0 ? 'matchFirst' : ''}}">
                                                     <div class="team {{ $match->team1_score > $match->team2_score ? 'winner' : '' }}">
@@ -281,7 +251,6 @@
                                     @endif
                                 </div>
                             </div>
-
 
                            {{-- MATCH SCORING --}}
                             <div class="table-responsive mt-4">

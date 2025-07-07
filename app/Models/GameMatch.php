@@ -63,6 +63,11 @@ class GameMatch extends Model
             ->exists();
     }
 
+    public function gameSchedule()
+    {
+        return $this->belongsTo(GameSchedule::class, 'schedule_id'); // Adjust if the foreign key is different
+    }
+    
     /**
      * Determine if the match is editable.
      */
@@ -99,4 +104,5 @@ class GameMatch extends Model
     {
         return $this->playArea->name ?? 'Unassigned';
     }
+    
 }
