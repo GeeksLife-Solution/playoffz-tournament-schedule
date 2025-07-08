@@ -444,9 +444,12 @@
     }
     
     .tournament-title {
-        font-weight: 700;
         font-size: 2rem;
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        font-weight: 700;
+        background: linear-gradient(to right, #fafafa, #17ff80, #06ca5f);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .cat-icons i{
