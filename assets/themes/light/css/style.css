@@ -19,6 +19,8 @@
     background-color:  var(--lightBg) !important;
 }
 
+
+
 .btn-primary {
     color: #fff;
     background-color:  var(--primary);
@@ -3614,6 +3616,11 @@ a.btn-custom {
     h1,
     h2 {
         font-size: 36px;
+    }
+
+    
+    .navbar .navbar-brand img{
+        max-width: 100px !important;
     }
 
     .navbar .navbar-text {

@@ -87,7 +87,7 @@
                                         $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Not-Started' : 'Scheduled'));
                                     @endphp
 
-                                    <div class="col-lg-4 mb-4 p-2">
+                                    <div class="main-card-box col-lg-4 col-md-6 col-sm-6 mb-4 p-2">
                                         <div class="match-card">
                                             <div class="match-header">
                                                 <h4 class="match-title">{{ $schedule->name }}</h4>
@@ -289,7 +289,7 @@
                                             $statusText = $isCompleted ? 'Completed' : ($isLive ? 'Live' : ($isPast ? 'Not-Started' : 'Scheduled'));
                                         @endphp
 
-                                        <div class="col-lg-4 mb-4 p-2">
+                                        <div class="main-card-box col-lg-4 col-md-6 col-sm-6 mb-4 p-2">
                                             <div class="match-card">
                                                 <div class="match-header">
                                                     <h4 class="match-title">{{ $schedule->name }}</h4>
@@ -783,26 +783,26 @@
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .match-body {
-            flex-direction: column;
-            padding: 1rem;
+            /* flex-direction: column; */
+            padding: 25px 6px;
         }
         
-        .team {
+        .team-a {
             width: 100%;
-            justify-content: center !important;
-            margin-bottom: 1rem;
+            flex-direction: column !important;
         }
         
         .team-b {
-            flex-direction: row-reverse;
+            width: 100%;
+            flex-direction: column-reverse !important;
         }
         
         .match-info {
             margin: 1rem 0;
             width: 100%;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
+            /* flex-direction: row; */
+            /* justify-content: space-between; */
+            /* align-items: center; */
         }
         
         .vs-circle {
@@ -880,6 +880,62 @@
 
 #allMatchesModal .btn-close:hover {
     opacity: 1;
+}
+
+@media (max-width: 1310px) and (min-width: 992px) {
+    .main-card-box {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .team-info {
+        font-size: 14px;
+        line-height: 5px;
+    }
+    .team-name{
+        font-size: 14px;
+
+    }
+    .team-score{
+        font-size: 14px;
+
+    }
+    .match-info{
+        font-size: 13px;
+
+    }
+    .match-info .vs-circle{
+        font-size: 14px;
+
+    }
+    .team-logo{
+        width: 40px;
+        height:40px;
+    }
+    .team.winner::after{
+        font-size:9px;
+        padding: 1px 6px;
+    }
+}
+@media (max-width: 991px) {
+    .table{
+        width: 100%;
+        overflow-x: scroll !important;
+    }
+    .table thead {
+        display: block !important;
+        font-size:10px;
+        width: 100%;
+    }
+    .table tr {
+        display: flex !important;
+        font-size:10px;
+    }
+    .table tr th{
+        padding:10px 15px !important;
+    }
 }
 </style>
 @endpush
@@ -1345,7 +1401,7 @@
                     .then(data => {
                         // Format the matches data
                         let matchesHtml = `
-                            <div class="table-responsive">
+                            <div class="">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>

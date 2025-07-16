@@ -141,10 +141,10 @@
             @lang('Sports')
         </a>
 
-        <a href="javascript:void(0)" class="text-dark" onclick="toggleSidebar('rightbar')">
+        <!-- <a href="javascript:void(0)" class="text-dark" onclick="toggleSidebar('rightbar')">
             <i class="fal fa-ticket-alt"></i>
             @lang('Bet Slip')
-        </a>
+        </a> -->
 
         @guest
             <a href="{{route('login')}}" class="text-dark">
